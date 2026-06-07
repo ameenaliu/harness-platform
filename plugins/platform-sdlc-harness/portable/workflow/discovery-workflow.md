@@ -33,10 +33,11 @@ Sanity-checks the approved tree (every Story has `[<surface>]` prefix + `S` numb
 - Creates each `Epic` via `gh issue create --label type:epic` with a Markdown body per `github-rendering`.
 - Creates each `Feature` (`--label type:feature`) under its Epic; wires it as a sub-issue via `gh api graphql addSubIssue` (fallback: `Parent: #<n>` body line + Project Parent field).
 - Creates each `Story` (`--label type:story --label surface:<surface>`) under its Feature; wires the sub-issue link the same way.
-- Adds every item to the org Project (`gh project item-add`) with Status `Backlog` + Surface set (`gh project item-edit`).
+- Adds **every** item to the org Project board (`gh project item-add`) with Status `Backlog` + Surface set (`gh project item-edit`) — board membership is mandatory, not best-effort. **Pre-check the `project` token scope** (`gh auth status`) before the loop; if missing, stop and instruct `gh auth refresh -s project,read:org`. If board-add fails for *every* item it's a systemic scope/config problem — stop loudly rather than reporting success. Verify membership after (`gh project item-list`).
+- Wires dependencies as **native "Blocked by" relationships** via the REST `dependencies/blocked_by` endpoint (blocker's integer `id` as `issue_id`) — not a `blocked` label or body line (those are a GitHub-Enterprise fallback). See `github-rendering` § Dependency convention.
 - Posts a discovery-summary comment on every Epic.
 
-Detect native sub-issue support once on the first link; if `addSubIssue` errors, switch the whole run to fallback mode and log it — never silently flatten.
+Detect native sub-issue support once on the first link; if `addSubIssue` errors, switch the whole run to fallback mode and log it — never silently flatten. Same one-shot detection for native dependencies.
 
 Updates the tracker stub with all returned issue numbers + URLs. Hands off:
 - Per-Story refinement → `/backlog-workflow improve <issue-number>` (or `refine`, `enrich`, `analyze`).

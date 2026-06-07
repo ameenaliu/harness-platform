@@ -33,10 +33,13 @@ if [ -z "$PYTHON" ]; then
     exit 2
 fi
 
-RESULT=$(echo "$INPUT" | "$PYTHON" <<'PY'
-import sys, json, re
+RESULT=$(HOOK_INPUT="$INPUT" "$PYTHON" <<'PY'
+import os, sys, json, re
 
-raw = sys.stdin.read()
+# Input arrives via the HOOK_INPUT env var, NOT stdin: a `<<'PY'` heredoc already
+# occupies this process's stdin (it is the program source), so sys.stdin is empty
+# here. Reading from the env var is what makes detection actually run.
+raw = os.environ.get("HOOK_INPUT", "")
 try:
     data = json.loads(raw)
 except json.JSONDecodeError:

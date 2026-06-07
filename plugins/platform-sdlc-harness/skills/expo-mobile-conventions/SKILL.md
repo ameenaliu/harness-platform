@@ -57,10 +57,33 @@ Same model as SERVICE. See `dotnet-conventions/SKILL.md → Branching`.
 - Use of `FlatList` instead of `CustomFlashList` — flagged by Phase B.
 - Hardcoded hex colors — flagged by Phase B.
 
+### Mobile tooling (verification, E2E, quality, security)
+
+Part of the MOBILE capability. `/init-workspace` installs them if missing; all advisory (none blocks commits) and scoped to new/modified code. Load the matching skill for usage.
+
+**Verification & E2E**
+- **agent-device** (Developer, Phase 3) — drive the running app on a simulator/emulator to verify the UI behaves as intended, not just that it compiles. See [`agent-device`](../agent-device/SKILL.md). Interactive only — not a committed artifact.
+- **Maestro** (Tester, Phase 6) — committed E2E flows in `mobile/.maestro/*.yaml` (`launchApp`/`tapOn`/`assertVisible`), happy + one key error/empty path per journey. See [`maestro-e2e`](../maestro-e2e/SKILL.md). Additive to the Jest suite + 85% threshold.
+
+**Quality, security, cleanliness** (Developer self-review + Reviewer Phase B)
+- **React Doctor** — `npx react-doctor@latest` over `mobile/` for performance / a11y / dead-code. See [`react-doctor`](../react-doctor/SKILL.md).
+- **expo-doctor** — `npx expo-doctor` for Expo project + dependency-compatibility health, especially after any dependency change. See [`expo-doctor`](../expo-doctor/SKILL.md).
+- **Security** — [`security-scan`](../security-scan/SKILL.md): Semgrep (RN/TS SAST), Gitleaks (secrets), OSV-Scanner + `yarn npm audit` (npm CVEs).
+- **Cleanliness** — [`dead-code-analysis`](../dead-code-analysis/SKILL.md): Knip + madge. **Bundle budget** — [`bundle-budget`](../bundle-budget/SKILL.md): size-limit on the exported JS bundle.
+- **Observability** — [`observability`](../observability/SKILL.md): new screens/flows capture errors via Sentry (RN error handler, `captureException` with context), leave breadcrumbs, track key events; never log PII.
+
 ## See also
 
 - [`dotnet-conventions`](../dotnet-conventions/SKILL.md) when the task also touches SERVICE.
 - [`react-turbo-conventions`](../react-turbo-conventions/SKILL.md) when the task also touches WEB.
+- [`agent-device`](../agent-device/SKILL.md) — verify the running app during development (Phase 3).
+- [`maestro-e2e`](../maestro-e2e/SKILL.md) — mobile E2E flows (Phase 6).
+- [`react-doctor`](../react-doctor/SKILL.md) — React/RN performance + quality scan.
+- [`expo-doctor`](../expo-doctor/SKILL.md) — Expo project health check.
+- [`security-scan`](../security-scan/SKILL.md) — SAST + secrets + dependency CVEs.
+- [`dead-code-analysis`](../dead-code-analysis/SKILL.md) — unused code/deps + circular deps.
+- [`bundle-budget`](../bundle-budget/SKILL.md) — bundle-size budgets.
+- [`observability`](../observability/SKILL.md) — Sentry error capture + key events.
 - [`building-native-ui`](../building-native-ui/SKILL.md) — Expo Router patterns, animations, native tabs (load for new mobile screens).
 - [`native-data-fetching`](../native-data-fetching/SKILL.md) — React Query patterns, error handling, caching (load for any data-fetch work).
 - [`expo-dev-client`](../expo-dev-client/SKILL.md) — building Expo dev clients.

@@ -83,7 +83,8 @@ If no command is specified, run the full pipeline: D1 → D2 → D3.
             │    Bottom-up wire sub-issues (gh api graphql addSubIssue;  │
             │      fallback type:* + Parent line + Project Parent field). │
             │    gh project item-add each + set Surface + Status=Backlog. │
-            │    Write Blocked-by / Blocks body lines for dependencies.   │
+            │      (verify project scope first; verify membership after)   │
+            │    Native "Blocked by" deps via REST dependencies endpoint.  │
             │    Return: tree summary with human-id → #N → URL.          │
             └─────────────────────────────────────────────────────────────┘
                                  │

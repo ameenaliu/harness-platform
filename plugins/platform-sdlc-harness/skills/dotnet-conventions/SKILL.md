@@ -59,9 +59,26 @@ user-invocable: true
 - Writes under `ai/` from non-orchestrator/non-planner agents — Phase 0 catches these.
 - Commit subject that doesn't match the Conventional Commits regex — Phase 0 catches.
 
+### Quality & security tooling (advisory — Developer self-review + Reviewer Phase B)
+
+`/init-workspace` installs these when SERVICE is present; none blocks commits (the zero-warnings `dotnet build` + data-policy hooks remain the hard gates). Apply to new/modified code only.
+
+- **Security** — [`security-scan`](../security-scan/SKILL.md): Semgrep (C# SAST), Gitleaks (secrets), and `dotnet list package --vulnerable` (NuGet CVEs). Fix high/critical findings the change introduced.
+- **Maintainability** — [`dotnet-code-quality`](../dotnet-code-quality/SKILL.md): Roslynator analyzers/refactorings (+ optional SonarAnalyzer.CSharp) and `dotnet list package --outdated`. Triage findings through SOLID/DRY/YAGNI.
+- **Migration safety** — [`migration-safety`](../migration-safety/SKILL.md): when the change adds/edits an EF Core migration, review for destructive/locking ops (dropped columns, non-nullable-without-default, locking index builds) before commit.
+- **API contract** — [`api-contract-check`](../api-contract-check/SKILL.md): when controllers/DTOs/routing change, diff the OpenAPI spec (oasdiff) for breaking changes that would hurt web/mobile consumers.
+- **Observability** — [`observability`](../observability/SKILL.md): new endpoints/handlers emit structured Serilog logs + OpenTelemetry traces; no PII in telemetry.
+
 ## See also
 
 - [`react-turbo-conventions`](../react-turbo-conventions/SKILL.md) when the task also touches WEB.
 - [`expo-mobile-conventions`](../expo-mobile-conventions/SKILL.md) when the task also touches MOBILE.
+- [`security-scan`](../security-scan/SKILL.md) — SAST + secrets + dependency CVEs (all surfaces).
+- [`dotnet-code-quality`](../dotnet-code-quality/SKILL.md) — .NET maintainability analyzers.
+- [`migration-safety`](../migration-safety/SKILL.md) — EF Core migration review.
+- [`api-contract-check`](../api-contract-check/SKILL.md) — OpenAPI breaking-change detection.
+- [`observability`](../observability/SKILL.md) — logging / tracing / error capture.
+- [`brainstorming`](../brainstorming/SKILL.md) (Planner Phase 1 — explore design before approaches).
+- [`grill-me`](../grill-me/SKILL.md), [`grill-with-docs`](../grill-with-docs/SKILL.md) (Planner Phase 1 — sharpen clarifying questions).
 - [`brainstorming`](../brainstorming/SKILL.md) (Planner Phase 1 — explore design before approaches).
 - [`grill-me`](../grill-me/SKILL.md), [`grill-with-docs`](../grill-with-docs/SKILL.md) (Planner Phase 1 — sharpen clarifying questions).

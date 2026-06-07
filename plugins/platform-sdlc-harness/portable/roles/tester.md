@@ -22,7 +22,8 @@ You **can**: read/write/edit files, run build and test commands. You **cannot**:
 2. **Write tests** using each Surface's framework:
    - **SERVICE**: xUnit + FluentAssertions + Moq; integration tests use `WebApplicationFactory` + Testcontainers + Refit (real DB — no mocks at the repository layer).
    - **WEB**: Vitest + React Testing Library for components; MSW for API mocks; integration tests use the design-system mount helpers per `react-turbo-conventions`.
-   - **MOBILE**: Jest + `@testing-library/react-native`; mocks for `expo-secure-store`, `expo-router`, Firebase, Sentry per `expo-mobile-conventions`.
+   - **MOBILE**: Jest + `@testing-library/react-native` for unit/integration; mocks for `expo-secure-store`, `expo-router`, Firebase, Sentry per `expo-mobile-conventions`.
+   - **MOBILE E2E (Maestro)**: in addition to the Jest suite, write end-to-end flows in `mobile/.maestro/*.yaml` (`launchApp`/`tapOn`/`assertVisible`) covering the Story's user journey — at least the happy path + one key error/empty path. Prefer stable `id:` selectors. Load the `maestro-e2e` skill. The Jest unit/integration suite and its 85% coverage threshold still apply — Maestro is additive, not a substitute.
 3. **Achieve the coverage target on new/modified code only**:
    - **SERVICE ≥ 80%** (unit + integration combined)
    - **WEB ≥ 70%** unit coverage
@@ -32,6 +33,7 @@ You **can**: read/write/edit files, run build and test commands. You **cannot**:
    - **SERVICE**: `dotnet test <solution> --collect:"XPlat Code Coverage"`
    - **WEB**: `yarn turbo test --filter=...<affected-app>` (Vitest with `--coverage`)
    - **MOBILE**: `yarn test:coverage:check` (Jest, enforces the 85% threshold)
+   - **MOBILE E2E**: `maestro test mobile/.maestro/` — all flows green (requires a running simulator/emulator). If no device/simulator is available in the environment, commit the flows but note in your status block that they were not executed here.
 5. **WEB/MOBILE**: run lint + typecheck before committing — both zero errors.
 6. **Commit test code only** using Conventional Commits with the `test` type:
    ```
@@ -76,6 +78,7 @@ End every response with:
 - Outcome: <SUCCESS | PARTIAL | FAILED | BLOCKED>
 - Tests written: <count>
 - Tests passing: <count> / <total>
+- E2E flows (mobile): <count written, count passing | not applicable | written but not executed (no simulator/emulator)>
 - Coverage: <percentage>% (target: <threshold>%)
 - Test attempts: <1 | 2 | 3>
 - Commit(s): <hash list, or "none">

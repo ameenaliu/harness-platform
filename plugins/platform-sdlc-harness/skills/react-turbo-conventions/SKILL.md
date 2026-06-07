@@ -56,6 +56,16 @@ Same model as SERVICE. See `dotnet-conventions/SKILL.md → Branching`.
 
 > Per `.claude/rules/web/testing.md`, the test suite is **not yet established** — when adding tests, follow the conventions in that file as the seed. Do not back-fill tests for unchanged code; the threshold applies only to new/modified lines.
 
+### Web tooling (quality, security, cleanliness — advisory)
+
+All run in Developer self-review + Reviewer Phase B, scoped to new/modified files; none blocks commits (`/init-workspace` installs/pre-warms them).
+
+- **React Doctor** — `npx react-doctor@latest` over `web/` (or the affected app) for performance (unnecessary re-renders), accessibility, dead-code, bundle-size risks. See [`react-doctor`](../react-doctor/SKILL.md).
+- **Security** — [`security-scan`](../security-scan/SKILL.md): Semgrep (TS/React SAST), Gitleaks (secrets), OSV-Scanner + `yarn npm audit` (npm CVEs). Fix high/critical the change introduced.
+- **Cleanliness** — [`dead-code-analysis`](../dead-code-analysis/SKILL.md): Knip (unused files/exports/deps) + madge (circular deps). Remove dead code / new cycles the change created.
+- **Bundle budget** — [`bundle-budget`](../bundle-budget/SKILL.md): size-limit; justify or fix bundle-size jumps from the diff.
+- **Observability** — [`observability`](../observability/SKILL.md): new screens/flows capture errors via Sentry (error boundaries, `captureException` with context), leave breadcrumbs, track key events; never log PII.
+
 ### Things the reviewer auto-blocks (Phase 0 + hook backstops)
 
 - Sensitive files (same list as SERVICE) — blocked by `sensitive-file-guard.sh`.
@@ -68,3 +78,8 @@ Same model as SERVICE. See `dotnet-conventions/SKILL.md → Branching`.
 
 - [`dotnet-conventions`](../dotnet-conventions/SKILL.md) when the task also touches SERVICE.
 - [`expo-mobile-conventions`](../expo-mobile-conventions/SKILL.md) when the task also touches MOBILE.
+- [`react-doctor`](../react-doctor/SKILL.md) — React performance + quality scan (web + mobile).
+- [`security-scan`](../security-scan/SKILL.md) — SAST + secrets + dependency CVEs.
+- [`dead-code-analysis`](../dead-code-analysis/SKILL.md) — unused code/deps + circular deps.
+- [`bundle-budget`](../bundle-budget/SKILL.md) — bundle-size budgets.
+- [`observability`](../observability/SKILL.md) — Sentry error capture + key events.

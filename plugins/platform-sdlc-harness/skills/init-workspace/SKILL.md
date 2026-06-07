@@ -108,6 +108,36 @@ For each tool below, run the **check** command. If it fails or is too old, follo
 
 > Stack tools (.NET / Node / Yarn / Docker) are only **required** for surfaces the repo actually adopts. Repos may be empty scaffolds with all stacks `TBD` — in that case verify only `git` + `gh` and record the rest as TBD (see Step 4).
 
+#### MOBILE / WEB capability tools
+
+When **MOBILE** and/or **WEB** is a present surface (with a chosen stack, not `TBD`), verify the React/mobile capability tools below. These do **not** install via the OS package manager — they use `npm`, a `curl` script, or `npx`, so the install commands are the same on every OS (run the **Install** command from the table directly instead of the winget/brew/apt protocol). They follow the same Ask-on-missing flow (offer Install / Skip / Cancel), but they are **advisory capability tools, not hard blockers**: on "Skip" for these three, **warn and continue** rather than halting setup (the workflow degrades gracefully — agents note when a tool was unavailable).
+
+| Tool | Surface | Check | Install (all OSes) | Used by |
+|---|---|---|---|---|
+| **agent-device** | MOBILE | `agent-device --version` | `npm install -g agent-device@latest` (needs Node 22+; iOS→Xcode, Android→SDK+adb for actual device control) | Developer — drive the running app to verify UI (Phase 3). See `agent-device` skill. |
+| **Maestro** | MOBILE | `maestro --version` | `curl -fsSL "https://get.maestro.mobile.dev" \| bash` (macOS alt: `brew install maestro`; may need a shell restart / PATH update for `~/.maestro/bin`) | Tester — mobile E2E flows in `mobile/.maestro/` (Phase 6). See `maestro-e2e` skill. |
+| **React Doctor** | WEB, MOBILE | `npx react-doctor@latest --version` | runs on demand via `npx` — no global install needed; pre-warm once with `npx -y react-doctor@latest --help` | Developer self-review + Reviewer Phase B — React perf/quality scan. See `react-doctor` skill. |
+
+> Skip all three when neither MOBILE nor WEB is present (or both are `TBD`). React Doctor applies to **both** WEB and MOBILE; agent-device and Maestro are MOBILE-only.
+
+#### Quality & security capability tools
+
+For any present surface with a chosen stack, verify the advisory quality/security tools below. Same OS-agnostic install style (npm / pipx / brew / Go binary / `dotnet tool` / `npx`) and the same **graceful** policy as the mobile/web tools: offer Install / Skip / Cancel, but on "Skip" **warn and continue** — these are advisory layers, not hard blockers.
+
+| Tool | Surface | Check | Install | Used by (skill) |
+|---|---|---|---|---|
+| **Semgrep** | all (C#/TS/RN) | `semgrep --version` | `pipx install semgrep` (or `python3 -m pip install semgrep`; macOS `brew install semgrep`) | SAST — `security-scan` |
+| **Gitleaks** | all | `gitleaks version` | `brew install gitleaks` (macOS); Linux/Windows: release binary or `go install github.com/gitleaks/gitleaks/v8@latest` | secrets — `security-scan` |
+| **OSV-Scanner** | all (NuGet+npm) | `osv-scanner --version` | `brew install osv-scanner`; else release binary or `go install github.com/google/osv-scanner/cmd/osv-scanner@latest` | dependency CVEs — `security-scan` |
+| **Roslynator** | SERVICE | `roslynator --version` | `dotnet tool install -g roslynator.dotnet.cli` | .NET maintainability — `dotnet-code-quality` |
+| **Knip** | WEB, MOBILE | `npx knip --version` | runs via `npx` (pre-warm `npx -y knip --help`) | unused code/deps — `dead-code-analysis` |
+| **madge** | WEB, MOBILE | `npx madge --version` | runs via `npx` (pre-warm `npx -y madge --version`) | circular deps — `dead-code-analysis` |
+| **expo-doctor** | MOBILE | `npx expo-doctor --help` | runs via `npx` | Expo health — `expo-doctor` |
+| **size-limit** | WEB, MOBILE | n/a (project devDep) | per-surface `yarn add -D size-limit @size-limit/preset-app` + a `.size-limit.json` budget — **do not add automatically**; note it for the team to opt in | bundle budget — `bundle-budget` |
+| **oasdiff** | SERVICE | `oasdiff --version` | `brew install oasdiff` (macOS); else release binary or `go install github.com/oasdiff/oasdiff@latest` | API breaking-change diff — `api-contract-check` |
+
+> `dotnet list package --vulnerable` / `--outdated`, `dotnet ef migrations script`, and `yarn npm audit` need no install (ship with the SDK / EF tools / Yarn). **migration-safety** and **observability** are review-lens skills with no CLI to install. **size-limit** is the one tool that requires repo changes (a devDependency + config), so init-workspace only **recommends** it — it never adds dependencies to the user's repo. Skip the whole subsection for surfaces that are `TBD`.
+
 #### `gh` authentication + scopes (mandatory)
 
 `gh` must be **installed AND authenticated** with the scopes the harness uses for Issues, Projects, and org reads.
@@ -342,9 +372,12 @@ Write `.claude/settings.local.json`, pre-approving the `gh` read/list commands (
       "Bash(ls:*)", "Bash(cd :*)", "Bash(mkdir:*)", "Bash(find:*)", "Bash(date:*)",
       "Bash(cat .claude/:*)",
       "Bash(dotnet build:*)", "Bash(dotnet restore:*)", "Bash(dotnet test:*)", "Bash(dotnet format:*)",
+      "Bash(dotnet list:*)", "Bash(dotnet tool:*)", "Bash(dotnet ef:*)", "Bash(roslynator:*)",
       "Bash(pnpm:*)", "Bash(yarn:*)", "Bash(npm:*)", "Bash(npx:*)", "Bash(node:*)",
       "Bash(eslint:*)", "Bash(prettier:*)",
       "Bash(eas:*)", "Bash(expo:*)",
+      "Bash(agent-device:*)", "Bash(maestro:*)", "Bash(react-doctor:*)",
+      "Bash(semgrep:*)", "Bash(gitleaks:*)", "Bash(osv-scanner:*)", "Bash(knip:*)", "Bash(madge:*)", "Bash(size-limit:*)", "Bash(oasdiff:*)",
       "Bash(git status:*)", "Bash(git log:*)", "Bash(git diff:*)", "Bash(git fetch:*)",
       "Bash(git rev-parse:*)", "Bash(git symbolic-ref:*)", "Bash(git remote:*)", "Bash(git -C:*)",
       "Bash(git branch:*)", "Bash(git checkout:*)", "Bash(git add:*)", "Bash(git commit:*)",
@@ -390,6 +423,18 @@ Source templates live under the plugin at `${CLAUDE_PLUGIN_ROOT}/portable/`. Dep
    - `skills/dotnet-conventions/SKILL.md` → `.agents/skills/dotnet-conventions/SKILL.md`
    - `skills/react-turbo-conventions/SKILL.md` → `.agents/skills/react-turbo-conventions/SKILL.md`
    - `skills/expo-mobile-conventions/SKILL.md` → `.agents/skills/expo-mobile-conventions/SKILL.md`
+   - **Capability + quality/security skills** (copy the ones relevant to the present surfaces — these are the tool skills the roles reference):
+     - `skills/agent-device/SKILL.md` → `.agents/skills/agent-device/SKILL.md` (MOBILE)
+     - `skills/maestro-e2e/SKILL.md` → `.agents/skills/maestro-e2e/SKILL.md` (MOBILE)
+     - `skills/react-doctor/SKILL.md` → `.agents/skills/react-doctor/SKILL.md` (WEB + MOBILE)
+     - `skills/expo-doctor/SKILL.md` → `.agents/skills/expo-doctor/SKILL.md` (MOBILE)
+     - `skills/dead-code-analysis/SKILL.md` → `.agents/skills/dead-code-analysis/SKILL.md` (WEB + MOBILE)
+     - `skills/bundle-budget/SKILL.md` → `.agents/skills/bundle-budget/SKILL.md` (WEB + MOBILE)
+     - `skills/dotnet-code-quality/SKILL.md` → `.agents/skills/dotnet-code-quality/SKILL.md` (SERVICE)
+     - `skills/migration-safety/SKILL.md` → `.agents/skills/migration-safety/SKILL.md` (SERVICE)
+     - `skills/api-contract-check/SKILL.md` → `.agents/skills/api-contract-check/SKILL.md` (SERVICE)
+     - `skills/observability/SKILL.md` → `.agents/skills/observability/SKILL.md` (all surfaces)
+     - `skills/security-scan/SKILL.md` → `.agents/skills/security-scan/SKILL.md` (all surfaces)
    - `agents/shared/engineering-principles.md` → `.agents/skills/engineering-principles/SKILL.md`, **prepending** SKILL.md frontmatter:
      ```
      ---
