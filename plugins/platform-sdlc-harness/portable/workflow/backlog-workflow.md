@@ -13,7 +13,7 @@ Improve the quality of a GitHub Story issue before it enters development. Read-m
 - Never assume requirements — ask the human when a section is ambiguous.
 - Never overwrite a Story's body silently; propose, then write after confirmation.
 - Body and acceptance criteria are Markdown (GitHub-native) per `.agents/skills/github-rendering/SKILL.md`; acceptance criteria render as a `- [ ]` checklist.
-- Express dependencies as `Blocked by: #<n>` / `Blocks: #<m>` body lines + the `blocked` label — there is no typed predecessor/successor link.
+- Express dependencies as GitHub **native issue dependencies** (the typed "Blocked by" relationship via the REST `dependencies/blocked_by` endpoint), not a `blocked` label or body link. Body line + `blocked` label is a GitHub-Enterprise-only fallback. See `.agents/skills/github-rendering/SKILL.md` § Dependency convention.
 - Every generated artefact (readiness report, refined Story, technical notes) ends with the attribution footer.
 - Match the conventions for any Surface you reference while enriching (`dotnet-conventions`, `react-turbo-conventions`, `expo-mobile-conventions`).
 - Refined titles MUST carry the `[<surface>]` prefix matching the Story's affected surfaces and the `S<e>.<f>.<s>:` numbering prefix.

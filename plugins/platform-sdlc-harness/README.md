@@ -67,6 +67,7 @@ Opening the repo prompts a one-time trust, after which the plugin is enabled aut
 |---|---|
 | **`gh` CLI** | Installed + authed (`gh auth status`) with scopes `repo, project, read:org, workflow`. Run `gh auth refresh -s project,read:org,workflow` if missing. |
 | **Stack toolchains** | Per adopted surface: .NET 8 SDK (service), Node 20+/Yarn 4 (web), Expo/Node (mobile). |
+| **Capability tools** | Auto-installed by `/init-workspace` per surface: `agent-device` (mobile UI verification), `maestro` (mobile E2E), `react-doctor`/`expo-doctor` (React/Expo quality), `security-scan` (Semgrep/Gitleaks/OSV), `dead-code-analysis` (Knip/madge), `dotnet-code-quality` (Roslynator), `bundle-budget` (size-limit). Advisory — never block commits. |
 | **One-time init** | `/init-workspace` — discovers org/repo/branches, ensures labels + the Project board, writes `platform-context.md` + `.claude/settings.local.json`, scaffolds the Codex/`AGENTS.md` cross-tool layer. |
 
 ## Agents
@@ -74,14 +75,36 @@ Opening the repo prompts a one-time trust, after which the plugin is enabled aut
 | Agent | Role | Cannot |
 |---|---|---|
 | **Planner** | Pulls the Story, finds the parent Feature (drives branch routing), proposes 2–3 approaches, decomposes into Task sub-issues, writes plan + tracker. Runs discovery + backlog refinement. | Write outside `docs/initiatives/` and `ai/` |
-| **Developer** | Implements one Task at a time in a worktree; commits code only. | Run any `gh`/remote write; write tests; touch `ai/*` |
-| **Reviewer** | Read-only code review (per-task + holistic). Phase 10 posts PR comments via `gh`. | Write/edit any source file |
-| **Tester** | Writes unit + integration tests per surface; commits test code only. | Run any `gh`/remote write; touch `ai/*` |
+| **Developer** | Implements one Task at a time in a worktree; commits code only. Verifies the running MOBILE UI with **agent-device** and runs advisory security/quality scans (security-scan, react-doctor, dead-code-analysis, dotnet-code-quality, expo-doctor, bundle-budget). | Run any `gh`/remote write; write tests; touch `ai/*` |
+| **Reviewer** | Read-only code review (per-task + holistic). Phase B runs the advisory scans (security-scan SAST/secrets/CVEs, react-doctor, Knip/madge, Roslynator) and raises new high-severity findings as comments. Phase 10 posts PR comments via `gh`. | Write/edit any source file |
+| **Tester** | Writes unit + integration tests per surface, plus MOBILE **Maestro** E2E flows; commits test code only. | Run any `gh`/remote write; touch `ai/*` |
 
 ## Hooks (7)
 
 - **4 data-policy** (none optional): `pii-pattern-guard`, `secret-scan-guard`, `prompt-injection-guard`, `sensitive-file-guard`.
 - **3 stack quality-check** (pre-commit, per surface): `service-quality-check` (`dotnet build` + `dotnet test`), `web-quality-check` (`yarn lint` + `yarn test`), `mobile-quality-check` (`tsc` + `lint` + `test`). Each no-ops if the surface's toolchain/manifest isn't present.
+
+## Capability, quality & security tools
+
+Surface-specific tools the dev/test/review roles drive — installed by `/init-workspace` for the present surfaces, and copied into `.agents/skills/` for Codex. **Advisory**, never commit gates (the hard gates stay: zero-warnings build, data-policy hooks, quality-check hooks). All scoped to new/modified code.
+
+| Tool | Skill | Surface | Driven by |
+|---|---|---|---|
+| **agent-device** | `skills/agent-device/` | mobile | Developer — open the running app and verify the UI (Phase 3) |
+| **Maestro** | `skills/maestro-e2e/` | mobile | Tester — committed E2E flows in `mobile/.maestro/*.yaml` (Phase 6) |
+| **React Doctor** | `skills/react-doctor/` | web + mobile | Dev self-review + Reviewer Phase B — React perf/a11y/dead-code scan |
+| **expo-doctor** | `skills/expo-doctor/` | mobile | Dev self-review — Expo project + dependency-compat health |
+| **security-scan** | `skills/security-scan/` | all | Dev self-review + Reviewer Phase B — Semgrep SAST + Gitleaks secrets + OSV/`--vulnerable`/`yarn npm audit` CVEs |
+| **dead-code-analysis** | `skills/dead-code-analysis/` | web + mobile | Dev self-review + Reviewer Phase B — Knip (unused code/deps) + madge (circular deps) |
+| **dotnet-code-quality** | `skills/dotnet-code-quality/` | service | Dev self-review + Reviewer Phase B — Roslynator maintainability + `--outdated` |
+| **bundle-budget** | `skills/bundle-budget/` | web + mobile | Dev self-review + Reviewer Phase B — size-limit bundle budgets |
+| **migration-safety** | `skills/migration-safety/` | service | Dev self-review + Reviewer Phase B — EF Core destructive/locking migration review |
+| **api-contract-check** | `skills/api-contract-check/` | service | Dev self-review + Reviewer Phase B — OpenAPI breaking-change diff (oasdiff) |
+| **observability** | `skills/observability/` | all | Dev self-review + Reviewer Phase B — logging/tracing (Serilog/OTel) + error capture (Sentry), no PII |
+
+## Tests & CI
+
+The plugin ships its own test suite (`plugins/platform-sdlc-harness/tests/`): behavioral tests for all hooks (`run-tests.sh`) and a structure validator (`validate-skills.py` — skill frontmatter, cross-reference links, hook command paths). `.github/workflows/ci.yml` runs these plus `scripts/validate-plugins.sh` and shellcheck on every push/PR. Run locally: `bash plugins/platform-sdlc-harness/tests/run-tests.sh`.
 
 See `CLAUDE.md` for the full non-negotiable rules summary and `skills/dev-workflow/context/orchestrator-rules.md` for coordinator boundaries.
 

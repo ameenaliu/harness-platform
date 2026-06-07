@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate plugins & hooks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install tooling (jq, shellcheck)
+        run: sudo apt-get update && sudo apt-get install -y jq shellcheck
+
+      # --- Marketplace + plugin manifests + frontmatter (existing script) ---
+      - name: Validate plugin manifests
+        run: bash scripts/validate-plugins.sh -r .
+
+      # --- Intra-plugin skill cross-references + hooks.json command paths ---
+      - name: Validate skill links & hook paths
+        run: python3 plugins/platform-sdlc-harness/tests/validate-skills.py
+
+      # --- Shell hooks must be free of real (error-level) defects ---
+      - name: Shellcheck hooks & scripts
+        run: |
+          shellcheck --severity=error \
+            plugins/platform-sdlc-harness/hooks/*.sh \
+            scripts/*.sh scripts/lib/*.sh
+
+      # --- Behavioral tests for the data-policy + quality-check hooks ---
+      - name: Run hook behavior tests
+        run: bash plugins/platform-sdlc-harness/tests/run-tests.sh
+
+      # --- Cross-plugin name conflicts (informational on non-PR) ---
+      - name: Check plugin name conflicts
+        continue-on-error: true
+        run: bash scripts/check-conflicts.sh -r .
+
+      # --- Context-bloat report (informational) ---
+      - name: Context-bloat report
+        continue-on-error: true
+        run: bash scripts/check-context-bloat.sh -r .

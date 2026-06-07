@@ -41,7 +41,7 @@
    - For each **Story** — does it depend on a sibling Story (same Feature or any Story in a blocking Feature) being implemented first? Same prompt. Capture as `blocked by <other-story-slug>`.
    - **Cross-Epic dependencies are allowed but flagged** — surface them so the human can confirm. Most discoveries are single-Epic; cross-Epic deps usually mean the Epic boundary is wrong.
 
-   The slug is a temporary identifier — at create time (D3) it gets resolved to the real GitHub issue `#N` and written as a `Blocked by: #<n>` body line (mirror `Blocks: #<m>`) plus the `blocked` label, per `skills/github-rendering/SKILL.md` § Dependency convention.
+   The slug is a temporary identifier — at create time (D3) it gets resolved to the real GitHub issue `#N` and written as a **native "Blocked by" relationship** (the REST `dependencies/blocked_by` endpoint), per `skills/github-rendering/SKILL.md` § Dependency convention. (Not a label or body link, except as a GitHub-Enterprise fallback.)
 
 6. **Assign hierarchical numbering IDs** (1-based) per `skills/github-rendering/SKILL.md` § Title numbering scheme. **Allocate every E/F/S number across the whole proposed tree up-front, before composing content**, so they are stable before any `gh issue create` runs in D3:
    - Number Epics top-down: E1, E2, … (almost always just E1).

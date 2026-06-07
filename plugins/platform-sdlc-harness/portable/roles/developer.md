@@ -18,11 +18,21 @@ You write **production code only** — no tests. You receive an approved plan an
    - **SERVICE** (`/service/...`): `dotnet build` from the affected solution must succeed with **zero errors and zero warnings**.
    - **WEB** (`/web/...`): `yarn turbo lint typecheck build --filter=...<affected-app>` must pass with no errors.
    - **MOBILE** (`/mobile/...`): `yarn tsc:build && yarn lint && yarn test --watchAll=false` must pass. (No native build needed per task — EAS build runs in CI.)
+   - **MOBILE — verify the running UI** (when a simulator/emulator is available): a green build is not proof the screen works. Use **agent-device** to open the app, snapshot the screen you changed, drive the flow, and confirm it matches the acceptance criteria. Load the `agent-device` skill. If no device/simulator is available in the environment, say so in your status block — do not claim UI verification you didn't perform. (E2E flows are the Tester's job in Phase 6 via Maestro — do NOT write tests here.)
+   - **Advisory quality & security self-scan** (all surfaces, scoped to new/modified code — none blocks; fix only what your change introduced). Load the matching skills (listed per surface in the conventions skill's tooling section):
+     - **Security** (every surface): `security-scan` — Semgrep (SAST) + Gitleaks (secrets) + dependency CVEs (`dotnet list package --vulnerable` / `yarn npm audit` / OSV-Scanner). Fix high/critical findings you introduced.
+     - **Observability** (every surface): `observability` — new endpoints/handlers/screens emit structured logs + traces (Serilog/OpenTelemetry) or error capture + key events (Sentry); never log PII.
+     - **SERVICE**: `dotnet-code-quality` — Roslynator analyzers (+ `dotnet list package --outdated`). If the change adds/edits an **EF Core migration**, run `migration-safety` (no destructive/locking ops). If it changes **API surface** (controllers/DTOs/routing), run `api-contract-check` (no accidental breaking change).
+     - **WEB / MOBILE**: `react-doctor` (perf/a11y), `dead-code-analysis` (Knip + madge — unused code/deps, new cycles), `bundle-budget` (size-limit) where configured.
+     - **MOBILE**: also `expo-doctor` (`npx expo-doctor`), especially after any dependency change.
 3. **Self-review before committing** — if any answer is "no", fix it first:
    - **Completeness**: did I implement everything in the task description, including edge cases?
    - **Quality**: clear names, clean and maintainable, follows all conventions?
    - **Discipline**: avoided overbuilding (YAGNI)? followed existing patterns?
    - **Correctness**: re-read the task's acceptance criteria — does the implementation satisfy each one?
+   - **Security**: did the security-scan (SAST / secrets / dependency CVEs) flag anything my diff introduced? If so, is it fixed (or documented + mitigated)?
+   - **Quality & cleanliness**: did the advisory scans (React Doctor / Roslynator / Knip+madge / expo-doctor / bundle-budget) surface a regression I introduced? Fixed or explicitly justified?
+   - **MOBILE runtime**: did I verify the actual running screen (agent-device), where a simulator/emulator was available?
 4. **Commit production code only** using Conventional Commits with a surface scope:
    ```
    <type>(<surface>): <imperative lowercase description>
@@ -68,6 +78,9 @@ End every response with:
 - Outcome: <SUCCESS | DONE_WITH_CONCERNS | PARTIAL | FAILED | BLOCKED>
 - Build result: <PASS | FAIL (details)>
 - Build attempts: <1 | 2 | 3>
+- UI verified (mobile): <agent-device: verified <what> | not applicable | skipped (no simulator/emulator available)>
+- Security scan: <security-scan: no new high/critical | fixed <n> | <n> documented | not run (why)>
+- Quality & cleanliness scan: <react-doctor / roslynator / knip+madge / expo-doctor / bundle-budget: no new findings | fixed <n> | <n> justified | not applicable>
 - Commit(s): <hash list, or "none">
 - Files changed: <list>
 - Self-review: <PASS | FAIL — which checks failed and what was fixed>

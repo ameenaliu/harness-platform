@@ -24,8 +24,8 @@ Read the Story with `gh issue view <n> --json title,body,labels,comments` (add `
 - Labels (`type:story` / `type:bug`, `surface:<surface>`, `blocked`) + Project **Status** (via `gh project item-list` / `gh api graphql` against the project number in `platform-context.md`)
 - Issue type (`type:story` / `type:bug` label)
 - **Parent Feature** — via the native sub-issue link (`gh api graphql` reading `parent { number title }`), fallback to a `Parent: #<n>` body line
-- **Blocked-by links** — parse the body's `## Implementation dependencies` → `Blocked by: #<n> (...)` lines. For each `#<n>`, fetch its title with `gh issue view <n> --json title` for display.
-- **Blocks links** — parse the body's `Blocks: #<m> (...)` lines. Same extraction.
+- **Blocked-by links** — read native dependencies: `gh api "repos/<org>/<repo>/issues/<n>/dependencies/blocked_by"` → each blocker's `number`/`title`. (Fallback for older GitHub Enterprise: parse the body's `## Implementation dependencies` → `Blocked by: #<n>` lines.)
+- **Blocks links** — read `gh api "repos/<org>/<repo>/issues/<n>/dependencies/blocking"` for the reciprocal side.
 
 Halt with a clear message if not found / not accessible.
 
@@ -85,7 +85,7 @@ Using Step 4 answers (or existing content for Tier 1), draft the ENTIRE Story at
 - **In Scope** *(optional section)* — bulleted list. Entity / domain model first, then mechanism, then heuristics, then plumbing.
 - **Out of Scope** *(optional section)* — explicit exclusions; cross-reference sibling Stories / Features by `#<n> (<human-id> <title>)`.
 - **Acceptance criteria** — Given/When/Then checklist (`- [ ]` items). Happy path first, then error/edge cases. Reference real components / integrations from `.claude/architecture/*` where applicable.
-- **Implementation dependencies** *(optional section)* — `Blocked by:` / `Blocks:` lines. Use the existing links fetched in Step 1 as the starting point. Surface them to the user during Step 4 (*"Blocked by: #420 'Camera permission', #421 'Upload pipeline'. Blocks: #430 'Result display'. Keep, change, or add more?"*). On change, capture the diff (add list + remove list) for Step 7's Write 1.5. See `skills/github-rendering/SKILL.md` § Dependency convention.
+- **Implementation dependencies** — native "Blocked by" relationships (NOT a body section in the happy path). Use the links read in Step 1 as the starting point. Surface them to the user during Step 4 (*"Blocked by: #420 'Camera permission', #421 'Upload pipeline'. Blocks: #430 'Result display'. Keep, change, or add more?"*). On change, capture the diff (add list + remove list) for Step 7's Write 1.5, which applies them via the REST `dependencies/blocked_by` endpoint. See `skills/github-rendering/SKILL.md` § Dependency convention.
 - **Surface** — the `## Surface` section value (matches the `surface:*` label).
 - **Open Questions** *(optional section)* — unresolved items tagged `[PO]` / `[Tech]` / `[Team]`.
 - **Technical notes** — leave empty. Populated by `/backlog-enrich`.
@@ -142,16 +142,17 @@ GitHub renders Markdown natively — no MD→HTML conversion. The Acceptance cri
 
 #### Write 1.5 — Dependency link sync (only if Step 5 captured changes)
 
-Dependencies are body lines + a label (no typed GitHub link). To **add** a `Blocked by: #<p>`:
-1. Ensure the body's `## Implementation dependencies` section contains `Blocked by: #<p> (<human-id> <title>)` (included in the Write 1 body payload).
-2. (Optional mirror) On the blocking issue `#<p>`, add a `Blocks: #<n> (...)` line via `gh issue edit <p> --body-file <p-body.md>` after reading its current body.
-3. If `#<p>` is still **open**, add the `blocked` label to `#<n>`: `gh issue edit <n> --add-label blocked`.
-
-To **remove** a `Blocked by: #<p>`:
-1. Drop the `Blocked by: #<p>` line from the body (in the Write 1 payload) and remove the mirrored `Blocks:` line on `#<p>`.
-2. If `#<n>` now has no remaining open blockers, remove the `blocked` label: `gh issue edit <n> --remove-label blocked`.
-
-Never delete a dependency line without updating both sides. See `skills/github-rendering/SKILL.md` § Dependency convention.
+Dependencies are GitHub **native "Blocked by" relationships** (not body lines / labels). The "Blocking" side is reciprocal — created/removed automatically. To **add** that `#<n>` is blocked by `#<p>`:
+```bash
+p_id=$(gh api "repos/<org>/<repo>/issues/<p>" --jq '.id')          # blocker's integer db id
+gh api --method POST "repos/<org>/<repo>/issues/<n>/dependencies/blocked_by" -F issue_id="$p_id"
+```
+To **remove** it:
+```bash
+p_id=$(gh api "repos/<org>/<repo>/issues/<p>" --jq '.id')
+gh api --method DELETE "repos/<org>/<repo>/issues/<n>/dependencies/blocked_by/$p_id"
+```
+Do not write `Blocked by:` body lines or toggle a `blocked` label in the happy path. **Fallback only** (native endpoint 404/422 on older GitHub Enterprise): fall back to the body-line + `blocked`-label form — read its details in `skills/github-rendering/SKILL.md` § Dependency convention. See that section for read/list endpoints too.
 
 **Failure policy**: log + continue per link. Surface failures in the change-log comment under a `### Link sync warnings` subsection so the human can fix in the GitHub UI.
 

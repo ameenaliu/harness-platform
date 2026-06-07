@@ -77,22 +77,36 @@ wiring. Read every config value (`Org`, `Repo`, project number/owner) from
 
 6. **Patch cross-reference placeholders**. The bodies from step 3 carried `#(TBD)` in their child checklists. Now that every child has its `#N`, `gh issue edit <parent-#> --body-file <patched-body.md>` to replace each `#(TBD)` with the real `#<child-#> (<human-id> <title>)` form. Epic + Feature only (Stories don't list children).
 
-7. **Add every issue to the Project board and set fields** (per `skills/github-rendering/SKILL.md` § Project (v2) board fields). For each created issue:
+7. **Add every issue to the Project board and set fields** (per `skills/github-rendering/SKILL.md` § Project (v2) board membership + fields). **Every Epic/Feature/Story MUST land on the board** — an issue that exists only in the repo Issues tab is a defect, not an acceptable degraded outcome.
+
+   **7a — Pre-check the `project` scope (do this before the loop).** Board writes need the `project` token scope; a missing scope is the #1 reason issues land in the repo but never on the board. Run `gh auth status` and confirm the printed scopes include `project` (and `read:org`). If `project` is missing, **stop** and tell the human: `"GitHub board sync needs the project scope. Run: gh auth refresh -s project,read:org — then re-run /discovery-workflow create <slug>."` Do not run the loop without it.
+
+   **7b — Add + set fields per issue:**
    ```bash
    gh project item-add <project-number> --owner "<project-owner>" --url "<issue-url>"
    ```
-   Then set fields via `gh project item-edit` (resolve field + option IDs once with `gh project field-list <project-number> --owner "<project-owner>"`):
+   Then set fields via `gh project item-edit` (resolve field + option IDs once with `gh project field-list <project-number> --owner "<project-owner>" --format json`):
    - **Status** = `Backlog` — on every Epic / Feature / Story.
    - **Surface** = the item's surface — on Stories (and Features where a single surface applies). Epics span surfaces; leave Surface unset.
-   - **Parent** = parent issue — **only** when native sub-issues were unavailable (fallback path from step 5).
-   Best-effort: `log("⚠️ project add/edit failed for #<n>: <error>")` and continue.
+   - **Parent** = parent issue — **only** when native sub-issues were unavailable (fallback path from step 5); otherwise the sub-issue link populates Parent automatically.
 
-8. **Write dependency links** (per `skills/github-rendering/SKILL.md` § Dependency convention). Walk the approved tree's `Blocked by` entries (Feature→Feature and Story→Story). For each `<dependent>` blocked by `<blocker>`:
+   **7c — Failure policy (not silent best-effort):**
+   - A **single** item's add/edit failing → `log("⚠️ project add/edit failed for #<n>: <error>")` and continue (transient).
+   - **Every** add failing (systemic — scope/permission/wrong project number) → **stop** and surface loudly: `"❌ Project board sync is failing for all items — likely a missing project scope or wrong project number/owner in platform-context.md. Issues were created in the repo but are NOT on the board. Fix and re-run create (it will append, not duplicate)."` Do not finish the run reporting success.
+   - **7d — Verify membership** after the loop: `gh project item-list <project-number> --owner "<project-owner>" --format json` and confirm every created `#N` is present. Report the on-board count vs created count in the summary; any missing item is listed explicitly.
+
+8. **Write dependency links as native "Blocked by" relationships** (per `skills/github-rendering/SKILL.md` § Dependency convention). Walk the approved tree's `Blocked by` entries (Feature→Feature and Story→Story). For each `<dependent>` blocked by `<blocker>`:
    - Resolve both ends via the `human-id → #N` map.
-   - Append to the **dependent** issue body, under `## Implementation dependencies`: `Blocked by: #<blocker-#> (<blocker-human-id> <title>)` (`gh issue edit`).
-   - Append the mirror to the **blocker** issue body: `Blocks: #<dependent-#> (<dependent-human-id> <title>)`.
-   - Add the `blocked` label to the dependent issue: `gh issue edit <dependent-#> --add-label blocked`.
-   - **Failure policy**: log + continue. Record `[LINK FAILED: <a> → <b>: <error>]` in the stub.
+   - Resolve the **blocker's REST database id** (integer, not `#number`): `blocker_id=$(gh api "repos/<org>/<repo>/issues/<blocker-#>" --jq '.id')`.
+   - Create the native relationship (the reciprocal "Blocking" side is automatic — no mirror call):
+     ```bash
+     gh api --method POST \
+       "repos/<org>/<repo>/issues/<dependent-#>/dependencies/blocked_by" \
+       -F issue_id="$blocker_id"
+     ```
+   - Do **not** write a `Blocked by:` body line or add the `blocked` label in the happy path — the native relationship is the source of truth and is what shows on the board.
+   - **Detect support once**: on the first dependency, if the endpoint 404s/422s (native dependencies not on this GitHub Enterprise), `log()` it and switch the whole run to the **fallback** for the rest: append `Blocked by: #<blocker-#> (<human-id> <title>)` under `## Implementation dependencies` in the dependent body + add the `blocked` label.
+   - **Failure policy**: per-link failures are non-blocking — log + continue, record `[LINK FAILED: <a> → <b>: <error>]` in the stub.
 
 9. **Post a discovery-summary comment on every Epic** (`gh issue comment <epic-#> --body …`):
    ```
@@ -125,6 +139,7 @@ wiring. Read every config value (`Org`, `Repo`, project number/owner) from
        …
 
    Total: <N Epics, M Features, K Stories>.  Failed: <count, or "none">.
+   On Project board: <X>/<Y> items (Project #<number>).  Native "Blocked by" links: <count>.
    Slug saved at: ai/discoveries/<slug>.md
 
    Next steps:
@@ -152,6 +167,8 @@ wiring. Read every config value (`Org`, `Repo`, project number/owner) from
   - Phase: D3-create
   - Slug: <slug>
   - Created: <N Epics, M Features, K Stories>
+  - On Project board: <X>/<Y> (Project #<number>)
+  - Native "Blocked by" links: <count> (or "fallback: body+label" if native API unavailable)
   - Failed: <count, or "none">
   - Outcome: <SUCCESS | PARTIAL (some items failed) | FAILED>
   - Next action: <"hand off to /backlog-workflow" | "re-run create after fix" | "human review failures">

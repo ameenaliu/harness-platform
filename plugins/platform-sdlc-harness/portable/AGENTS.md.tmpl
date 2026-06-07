@@ -27,7 +27,7 @@ Configuration above is read from `.claude/context/platform-context.md` (recorded
 
 - Every Story/Task also carries a **`surface:<service\|web\|mobile\|cross-cutting>`** label and is added to the Project board with its **Surface** and **Status** fields set.
 - Parent/child links use native **sub-issues** (`gh api graphql addSubIssue`); when sub-issues are unavailable, fall back to a `Parent: #<n>` body line + the Project **Parent** field.
-- Dependencies are expressed in issue bodies (`Blocked by: #<n>` / `Blocks: #<m>`) plus a `blocked` label — there is no typed predecessor/successor link on GitHub.
+- Dependencies use GitHub's **native issue dependencies** (GA Aug 2025): a typed **Blocked by** relationship via `POST /repos/{owner}/{repo}/issues/{n}/dependencies/blocked_by` (body `issue_id` = the blocker's integer database id). This renders in the issue relationship panel and on the board — do **not** use a `blocked` label or a body link in the happy path. Body line + `blocked` label is a fallback only for GitHub Enterprise versions without the feature. See `.agents/skills/github-rendering/SKILL.md` § Dependency convention.
 - See `.agents/skills/github-rendering/SKILL.md` for the canonical issue body shapes and numbering scheme.
 
 ## Branching — two-tier model
@@ -91,6 +91,26 @@ Authoritative, per surface — read the matching skill before writing or reviewi
 | MOBILE (Expo) | `mobile/**/app.config.*`, `mobile/**/app.json` | `.agents/skills/expo-mobile-conventions/SKILL.md` |
 
 Stacks ship as defaults; this repo's chosen stack/versions are recorded in `.claude/context/platform-context.md`. SOLID / DRY / YAGNI apply to all code in all languages — violations are blocking at review.
+
+### Capability, quality & security tools
+
+`/init-workspace` installs these on the host for the present surfaces; the role skills below describe usage. All are **advisory** — surfaced in Developer self-review + Reviewer Phase B (and Tester Phase 6 for Maestro), scoped to new/modified code; none is a commit gate. The hard gates remain the zero-warnings build, the data-policy hooks, and the per-surface quality-check hooks.
+
+| Tool | Surface | Used by | Skill |
+|---|---|---|---|
+| **agent-device** | MOBILE | Developer (Phase 3) — drive the running app to verify the UI, not just the build | `.agents/skills/agent-device/SKILL.md` |
+| **Maestro** | MOBILE | Tester (Phase 6) — committed E2E flows in `mobile/.maestro/*.yaml` | `.agents/skills/maestro-e2e/SKILL.md` |
+| **React Doctor** | WEB, MOBILE | Dev self-review + Reviewer Phase B — React perf/a11y/quality scan | `.agents/skills/react-doctor/SKILL.md` |
+| **expo-doctor** | MOBILE | Dev self-review — Expo project + dependency-compatibility health | `.agents/skills/expo-doctor/SKILL.md` |
+| **security-scan** (Semgrep + Gitleaks + OSV/`--vulnerable`/`yarn npm audit`) | all | Dev self-review + Reviewer Phase B — SAST + secrets + dependency CVEs | `.agents/skills/security-scan/SKILL.md` |
+| **dead-code-analysis** (Knip + madge) | WEB, MOBILE | Dev self-review + Reviewer Phase B — unused code/deps + circular deps | `.agents/skills/dead-code-analysis/SKILL.md` |
+| **bundle-budget** (size-limit) | WEB, MOBILE | Dev self-review + Reviewer Phase B — bundle-size budgets | `.agents/skills/bundle-budget/SKILL.md` |
+| **dotnet-code-quality** (Roslynator) | SERVICE | Dev self-review + Reviewer Phase B — .NET maintainability + `--outdated` | `.agents/skills/dotnet-code-quality/SKILL.md` |
+| **migration-safety** | SERVICE | Dev self-review + Reviewer Phase B — EF Core migration review (destructive/locking ops) | `.agents/skills/migration-safety/SKILL.md` |
+| **api-contract-check** (oasdiff) | SERVICE | Dev self-review + Reviewer Phase B — OpenAPI breaking-change diff | `.agents/skills/api-contract-check/SKILL.md` |
+| **observability** | all | Dev self-review + Reviewer Phase B — logging/tracing (Serilog/OTel) + error capture (Sentry), no PII | `.agents/skills/observability/SKILL.md` |
+
+agent-device = interactive verification; Maestro = committed E2E; React Doctor/expo-doctor/dotnet-code-quality/dead-code-analysis/bundle-budget = static quality; security-scan = SAST + secrets + dependency CVEs; migration-safety/api-contract-check = production-safety review for the service; observability = operability. None replaces the unit/integration suite or its coverage threshold.
 
 ## Workflow — 10 phases, 3 human gates, 3 holistic reviews
 

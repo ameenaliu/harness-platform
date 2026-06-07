@@ -26,7 +26,7 @@ Read the Story issue with `gh issue view <n> --json title,body,labels,comments` 
 - **Project Status** — read the Story's Project (v2) **Status** field (`Backlog` / `Ready` / `In Progress` / `In Review` / `Done`) via `gh project item-list` / `gh api graphql` against the project number in `platform-context.md`
 - Issue type — `type:story` vs `type:bug` label
 - **Parent Feature** — the Story's parent via the native sub-issue link (`gh api graphql` reading `parent { number title }`), falling back to a `Parent: #<n>` line in the body; record `#<n> (F<e>.<f> <title>)` or `none`
-- **Blocked by / Blocks** — parse the body's `## Implementation dependencies` section (`Blocked by: #<n>` / `Blocks: #<n>` lines) and the presence of the `blocked` label
+- **Blocked by / Blocks** — read native dependencies: `gh api "repos/<org>/<repo>/issues/<n>/dependencies/blocked_by"` and `.../dependencies/blocking` (fallback for older GitHub Enterprise: the body's `## Implementation dependencies` lines + `blocked` label)
 
 If the issue is not found or not accessible, inform the user clearly and stop.
 

@@ -151,38 +151,83 @@ gh api graphql -f query='
 
 To read children: `gh api graphql` with `issue(number:N){ subIssues(first:50){ nodes { number title } } }`.
 
+> **Sub-issues ARE the native Parent relationship.** A sub-issue link is what populates the **Parent / Sub-issues** relationship panel on the issue and the **Parent** column on the Project board. Do **not** also write a `Parent: #n` body line in the happy path — the native link is the relationship. The body line is only a fallback (below).
+
 ### Fallback: when sub-issues are unavailable
 
-If `addSubIssue` errors (feature not enabled), record the relationship two ways so nothing is lost:
+If `addSubIssue` errors (feature not enabled, e.g. older GitHub Enterprise), record the relationship two ways so nothing is lost:
 1. Add a `Parent: #<parent-number>` line at the top of the child body, and a checklist entry `- [ ] #<child>` under the parent's "… in this Epic/Feature" section.
 2. Set the **Parent** field on the Project board (single-select / text) so the board still shows the tree.
 
 Detect support once per run (try `addSubIssue` on the first link; if it fails, switch the whole run to fallback and `log()` that sub-issues were unavailable — never silently flatten).
 
-## Dependency convention (Predecessor / Successor)
+## Dependency convention (native "Blocked by" relationships)
 
-GitHub has no typed "Predecessor/Successor" link. Express dependencies in the body + labels:
+GitHub has **native issue dependencies** (GA August 2025): typed **Blocked by** / **Blocking** relationships that render in the issue's relationship panel and on the Project board. **Use the native relationship as the primary mechanism — not a `blocked` label and not a body link.** The label/body form is a fallback only.
 
-- In the **dependent** issue body, under `## Implementation dependencies`:
-  - `Blocked by: #<n> (<human-id> <title>)`
-- In the **blocking** issue body (optional mirror):
-  - `Blocks: #<m> (<human-id> <title>)`
-- Add the `blocked` label to any issue currently waiting on an open dependency; remove it when the dependency closes.
+### Primary: native dependency via the REST API
 
-`/backlog-workflow` maintains these lines (adds/removes blocked-by, updates the `blocked` label). Never delete a dependency line without updating both sides.
+The blocker is identified by its **integer database `id`** (the `.id` field of the REST issue object) — **not** its `#number`, and **not** the GraphQL node id.
 
-## Project (v2) board fields
+```bash
+# 1. Resolve the BLOCKER's REST database id (an integer)
+blocker_id=$(gh api "repos/<org>/<repo>/issues/<blocker-number>" --jq '.id')
 
-Every Epic/Feature/Story/Task is added to the org Project (`gh project item-add --owner <org> --url <issue-url>`), with these fields set via `gh project item-edit`:
+# 2. Mark <dependent> as "blocked by" <blocker>. The reciprocal "Blocking" side
+#    is created automatically — there is no mirror call to make.
+gh api --method POST \
+  "repos/<org>/<repo>/issues/<dependent-number>/dependencies/blocked_by" \
+  -F issue_id="$blocker_id"
+```
+
+Read / remove:
+- What an issue is blocked by: `gh api "repos/<org>/<repo>/issues/<n>/dependencies/blocked_by"`
+- What an issue is blocking:   `gh api "repos/<org>/<repo>/issues/<n>/dependencies/blocking"`
+- Remove a dependency:         `gh api --method DELETE "repos/<org>/<repo>/issues/<n>/dependencies/blocked_by/<blocker_id>"`
+
+Do **not** add a `Blocked by:` body line or the `blocked` label in the happy path — the native relationship is the source of truth and is what the user sees on the board.
+
+### Fallback: only if the native dependency API is unavailable
+
+If the `dependencies/blocked_by` endpoint returns 404/422 (feature not present on this GitHub Enterprise version), degrade — never silently drop the dependency:
+- In the **dependent** body under `## Implementation dependencies`: `Blocked by: #<n> (<human-id> <title>)` (mirror `Blocks:` on the blocker optional).
+- Add the `blocked` label for board filtering.
+Detect once per run (try the native call on the first dependency; on failure switch the run to fallback and `log()` it).
+
+`/backlog-workflow` maintains these native relationships (adds/removes `blocked_by`) as scope changes — never leave a stale dependency.
+
+## Project (v2) board membership + fields
+
+**Every Epic/Feature/Story/Task MUST be added to the org Project (v2) board** — creating the issue in the repo is not enough; an issue that exists only in the repo Issues tab and not on the board is a defect, not an acceptable degraded state. Add it, then set its fields:
+
+```bash
+# Add to the board (returns the project item id)
+gh project item-add <project-number> --owner "<project-owner>" --url "<issue-url>"
+```
+
+```bash
+# Set fields via gh project item-edit (resolve field + option ids once with
+# `gh project field-list <project-number> --owner "<project-owner>" --format json`)
+```
 
 | Field | Values | Set when |
 |---|---|---|
 | **Status** | `Backlog → Ready → In Progress → In Review → Done` | lifecycle transitions (see orchestrator-rules) |
 | **Surface** | `service / web / mobile / cross-cutting` | at creation |
 | **Iteration** | (optional) sprint window | at planning, if used |
-| **Parent** | parent issue (fallback hierarchy) | only when native sub-issues unavailable |
+| **Parent** | parent issue | only when native sub-issues unavailable (otherwise the sub-issue link populates Parent automatically) |
 
 The project number/owner is read from `.claude/context/platform-context.md` (recorded by `/init-workspace`).
+
+### Board-add requires the `project` token scope
+
+`gh project item-add` / `item-edit` need the **`project`** scope on the `gh` token (and, for an org project, org-level project permission). This is the **most common reason issues land in the repo but never on the board.** Before a create/sync run that writes to the board, verify:
+
+```bash
+gh auth status        # the printed token scopes must include `project` (and `read:org`)
+```
+
+If `project` is missing, stop and instruct: `gh auth refresh -s project,read:org`. Do not treat a board-add failure that affects **every** item as a per-item warning — that is a systemic scope/permission problem; surface it loudly and stop so the human can fix the token, then re-run. (Per-item transient failures remain best-effort.) A known GitHub incident can also make `item-add` succeed but not persist — if items report added yet don't appear, re-run after verifying scope, then check the GitHub status page.
 
 ## Attribution
 

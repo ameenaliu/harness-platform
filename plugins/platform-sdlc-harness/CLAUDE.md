@@ -125,6 +125,19 @@ Single in-scope monorepo (default integration branch `develop`) covering three s
 - WEB: React 19 Turbo monorepo under `web/` — see `skills/react-turbo-conventions/`
 - MOBILE: Expo app under `mobile/` — see `skills/expo-mobile-conventions/`
 
+**Capability, quality & security tools** (auto-installed by `/init-workspace` per surface, advisory — never a commit gate; the hard gates remain the zero-warnings build, data-policy hooks, and quality-check hooks). All scoped to new/modified code, run in Developer self-review + Reviewer Phase B (Maestro in Tester Phase 6):
+- **agent-device** (`skills/agent-device/`, mobile) — drive the running app to verify MOBILE UI (Phase 3).
+- **maestro-e2e** (`skills/maestro-e2e/`, mobile) — committed E2E flows in `mobile/.maestro/` (Phase 6), additive to the Jest suite.
+- **react-doctor** (`skills/react-doctor/`, web + mobile) — React perf/a11y/quality.
+- **expo-doctor** (`skills/expo-doctor/`, mobile) — Expo project + dependency-compat health.
+- **security-scan** (`skills/security-scan/`, all surfaces) — Semgrep SAST + Gitleaks secrets + dependency CVEs (`dotnet list package --vulnerable` / `yarn npm audit` / OSV-Scanner). Broadens, does not replace, the data-policy hooks.
+- **dead-code-analysis** (`skills/dead-code-analysis/`, web + mobile) — Knip + madge.
+- **dotnet-code-quality** (`skills/dotnet-code-quality/`, service) — Roslynator maintainability + `--outdated`.
+- **bundle-budget** (`skills/bundle-budget/`, web + mobile) — size-limit bundle budgets.
+- **migration-safety** (`skills/migration-safety/`, service) — EF Core destructive/locking migration review.
+- **api-contract-check** (`skills/api-contract-check/`, service) — OpenAPI breaking-change diff (oasdiff).
+- **observability** (`skills/observability/`, all surfaces) — Serilog/OpenTelemetry logging+tracing and Sentry error capture; never log PII.
+
 > Conventions ship as **defaults**; each repo records its chosen stack/versions in `platform-context.md` at `/init-workspace` time. The matching conventions apply once a surface adopts that stack.
 
 ## Data Policy — Hard Refusal Rules

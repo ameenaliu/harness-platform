@@ -61,7 +61,7 @@ All GitHub writes are **best-effort** — warn clearly on failure and continue.
    - **Sub-issue link** each new item to the existing parent via `gh api graphql addSubIssue` (resolve node IDs with `gh issue view <#> --json id -q .id`). On failure, switch to fallback: `Parent: #<parent-#>` body line + Project **Parent** field.
    - **Add to the Project board** (`gh project item-add`) and set **Status** = `Backlog` + **Surface**.
    - **Patch** the parent's "… in this Epic/Feature" checklist (`gh issue edit`) to list the new children as `- [ ] #<child-#> (<human-id> <title>)`.
-   - For any captured dependency (new ↔ existing OR new ↔ new): write `Blocked by: #<n>` / `Blocks: #<m>` body lines + add the `blocked` label per `github-rendering` § Dependency convention.
+   - For any captured dependency (new ↔ existing OR new ↔ new): create the **native "Blocked by" relationship** — `p_id=$(gh api "repos/<org>/<repo>/issues/<blocker-#>" --jq '.id')` then `gh api --method POST "repos/<org>/<repo>/issues/<dependent-#>/dependencies/blocked_by" -F issue_id="$p_id"` — per `github-rendering` § Dependency convention (label/body fallback only on older GitHub Enterprise).
    - Log + continue on any per-write failure.
 
 7. **Tracker stub**: if a discovery tracker stub exists for the parent's discovery (locate by searching `ai/discoveries/*.md` for the parent `#N`), **append** the new items to its `## GitHub issues (D3)` section. If no stub exists (parent was created manually or by another tool), don't create one — extend is for GitHub additions, not for re-doing the discovery record.
