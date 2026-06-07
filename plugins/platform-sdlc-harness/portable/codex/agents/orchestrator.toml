@@ -1,0 +1,12 @@
+# Codex subagent — platform-sdlc orchestrator.
+# `developer_instructions` is assembled by /init-workspace from:
+#   portable/mechanics/codex.md + portable/roles/orchestrator.md  (TOML-escaped into the triple-quoted string)
+# This subagent is normally spawned by the platform-dev-workflow skill, which holds the phase/gate sequencing.
+# GitHub ops use the `gh` CLI via shell (no MCP server) — `gh` must be authed in the Codex environment.
+name = "platform-sdlc-orchestrator"
+description = "SDLC workflow coordinator — drives a GitHub Story issue on the monorepo through 10 phases / 3 human gates / 3 holistic review checkpoints, spawning the planner, developer, reviewer, and tester subagents and stopping at each gate for approval. GitHub Issues + Project board + PRs via the gh CLI."
+model = "gpt-5.4"
+sandbox_mode = "workspace-write"
+developer_instructions = """
+{{DEVELOPER_INSTRUCTIONS}}
+"""

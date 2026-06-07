@@ -1,0 +1,10 @@
+# Codex subagent — platform-sdlc tester.
+# `developer_instructions` assembled by /init-workspace from:
+#   portable/mechanics/codex.md + portable/roles/tester.md
+name = "platform-sdlc-tester"
+description = "Test implementation specialist on the monorepo — writes unit + integration tests after all dev tasks are approved AND GATE #2 is crossed, to the per-surface coverage targets (SERVICE ≥ 80%, WEB ≥ 70%, MOBILE ≥ 85%). Phase 6."
+model = "gpt-5.4"
+sandbox_mode = "workspace-write"
+developer_instructions = """
+{{DEVELOPER_INSTRUCTIONS}}
+"""

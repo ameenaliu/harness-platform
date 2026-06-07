@@ -1,0 +1,11 @@
+# Codex subagent — platform-product-video reviewer.
+# READ-ONLY for all source. `developer_instructions` assembled by /init-video-workspace from:
+#   portable/mechanics/codex.md + portable/roles/reviewer.md
+name = "platform-video-reviewer"
+description = "Phase 5 — read-only verifier. ffprobes each of the 3 final MP4s for aspect ratio + duration (±2s of script target) + audio integrated loudness (-16 LUFS voiceover, -28 LUFS BGM ±2 LU) + captions present + no hardcoded brand colors in composition + hook/CTA timing + file-size caps. Hosts GATE #3 for final human approval. Verdict always INFORMATIONAL — never blocks."
+model = "gpt-5.4"
+sandbox_mode = "read-only"
+mcp_servers = []
+developer_instructions = """
+{{DEVELOPER_INSTRUCTIONS}}
+"""

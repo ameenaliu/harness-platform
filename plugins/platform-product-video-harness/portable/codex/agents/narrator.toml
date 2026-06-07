@@ -1,0 +1,11 @@
+# Codex subagent — platform-product-video narrator.
+# READ-ONLY for .env (never edited; user maintains). `developer_instructions` assembled by /init-video-workspace from:
+#   portable/mechanics/codex.md + portable/roles/narrator.md
+name = "platform-video-narrator"
+description = "Phase 4 — loads ELEVENLABS_API_KEY from <ProductVideos>/.env via `set -a; . .env; set +a` (halts with remediation block if missing — never auto-writes .env). Calls ElevenLabs TTS per scene + Sound Effects for ambient bed. ffmpeg muxes audio + each silent preview into final MP4s in projects/<slug>/out/."
+model = "gpt-5.4"
+sandbox_mode = "workspace-write"
+mcp_servers = []
+developer_instructions = """
+{{DEVELOPER_INSTRUCTIONS}}
+"""

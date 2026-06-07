@@ -1,0 +1,40 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls:*)",
+      "Bash(find:*)",
+      "Bash(date:*)",
+      "Bash(cd :*)",
+      "Bash(cat .env.example:*)",
+      "Bash(grep:*)",
+      "Bash(git status:*)",
+      "Bash(git log:*)",
+      "Bash(git diff:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git checkout:*)",
+      "Bash(git pull:*)",
+      "Bash(git fetch:*)",
+      "Bash(git branch:*)",
+      "Bash(git rev-parse:*)",
+      "Bash(git remote:*)",
+      "Bash(git clone:*)",
+      "Bash(ffmpeg:*)",
+      "Bash(ffprobe:*)",
+      "Bash(npx remotion:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run:*)",
+      "Bash(node:*)",
+      "Bash(yarn:*)",
+      "Bash(curl --silent --request POST https://api.elevenlabs.io/*:*)",
+      "Bash(curl --silent --request GET https://api.elevenlabs.io/*:*)",
+      "Bash(curl -s -X POST https://api.elevenlabs.io/*:*)",
+      "Bash(curl -s -X GET https://api.elevenlabs.io/*:*)",
+      "Bash(mkdir:*)",
+      "Bash(set -a; . *:*)",
+      "Bash(cp:*)",
+      "Bash(mv:*)"
+    ],
+    "deny": []
+  }
+}

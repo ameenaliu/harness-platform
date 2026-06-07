@@ -1,0 +1,7 @@
+.claude/logs/
+ai/
+.claude/context/*.local.md
+.claude/settings.local.json
+*.swp
+.DS_Store
+Thumbs.db

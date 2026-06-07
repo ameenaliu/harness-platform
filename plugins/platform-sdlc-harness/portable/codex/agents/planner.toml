@@ -1,0 +1,11 @@
+# Codex subagent — platform-sdlc planner.
+# `developer_instructions` assembled by /init-workspace from:
+#   portable/mechanics/codex.md + portable/roles/planner.md
+# GitHub ops use the `gh` CLI via shell (no MCP server) — `gh` must be authed in the Codex environment.
+name = "platform-sdlc-planner"
+description = "Requirements analyst, solution architect, idea decomposer, backlog refiner & architecture-rules auditor — operates in 5 modes across 4 workflows: `requirements` (dev-workflow Phase 1), `plan` (Phase 2), `architecture-audit` (Phase 8), `discovery` (discovery-workflow D1/D2/D3 + extend — shape idea into an Epic→Feature→Story tree of GitHub Issues + sub-issues), `refinement` (backlog-workflow — refine one Story via Issue body edits + Comments)."
+model = "gpt-5.4"
+sandbox_mode = "workspace-write"
+developer_instructions = """
+{{DEVELOPER_INSTRUCTIONS}}
+"""

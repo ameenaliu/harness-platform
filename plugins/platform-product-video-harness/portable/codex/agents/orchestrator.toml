@@ -1,0 +1,12 @@
+# Codex subagent — platform-product-video orchestrator.
+# `developer_instructions` is assembled by /init-video-workspace from:
+#   portable/mechanics/codex.md + portable/roles/orchestrator.md  (TOML-escaped into the triple-quoted string)
+# This subagent is normally spawned by the platform-video-generate skill, which holds the phase/gate sequencing.
+name = "platform-video-orchestrator"
+description = "Video pipeline coordinator — drives the 5-phase generate workflow (Analyze → Script → Build → Narrate → Review) with 3 human gates, spawning the analyzer/scriptwriter/compositor/narrator/reviewer subagents and stopping at each gate for approval."
+model = "gpt-5.4"
+sandbox_mode = "workspace-write"
+mcp_servers = []
+developer_instructions = """
+{{DEVELOPER_INSTRUCTIONS}}
+"""

@@ -1,0 +1,11 @@
+# Codex subagent — platform-product-video scriptwriter.
+# `developer_instructions` assembled by /init-video-workspace from:
+#   portable/mechanics/codex.md + portable/roles/scriptwriter.md
+name = "platform-video-scriptwriter"
+description = "Phase 2 — picks closest template from script-templates/, fills variables from brief.md + analysis.json, drafts script.md with scene shot list + voiceover + captions + per-scene durations. Hosts GATE #1 for human approval. No code, no Bash."
+model = "gpt-5.4"
+sandbox_mode = "workspace-write"
+mcp_servers = []
+developer_instructions = """
+{{DEVELOPER_INSTRUCTIONS}}
+"""

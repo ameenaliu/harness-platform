@@ -1,0 +1,11 @@
+# Codex subagent — platform-product-video analyzer.
+# `developer_instructions` assembled by /init-video-workspace from:
+#   portable/mechanics/codex.md + portable/roles/analyzer.md
+name = "platform-video-analyzer"
+description = "Phase 1 — extracts frames via ffmpeg from a sample.mp4, reads each via vision, infers scene count + pacing + dominant palette + suggested template. Writes analysis.json under _cache/. Silent (no human gate). Skip if cached."
+model = "gpt-5.4"
+sandbox_mode = "workspace-write"
+mcp_servers = []
+developer_instructions = """
+{{DEVELOPER_INSTRUCTIONS}}
+"""

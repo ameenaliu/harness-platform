@@ -1,0 +1,52 @@
+#!/bin/bash
+# platform-sdlc-harness — portable data-policy guard (git pre-commit hook).
+#
+# Defense-in-depth for tools WITHOUT Claude Code's runtime hooks (Codex).
+# Blocks a commit when staged content contains a known provider's secret-key shape
+# or staged file paths look sensitive. Mirrors the plugin's secret-scan-guard.sh and
+# sensitive-file-guard.sh, retuned for Paystack, SendGrid, Firebase, Sentry, OpenAI, Azure.
+#
+# Install: copy to .git/hooks/pre-commit (chmod +x), or wire via Husky / core.hooksPath.
+# Bypass for a vetted commit: `git commit --no-verify` (use sparingly, and never for real secrets).
+
+set -euo pipefail
+
+fail() { echo "BLOCKED by platform-sdlc data-policy pre-commit: $1" >&2; echo "$2" >&2; exit 1; }
+
+# --- 1) Sensitive PATHS -----------------------------------------------------
+staged_paths=$(git diff --cached --name-only --diff-filter=AM | tr '\\' '/')
+while IFS= read -r f; do
+  [ -z "$f" ] && continue
+  case "$f" in
+    *.env|*.env.*|*.secret|*.key|*.pfx|*.pem|*serviceAccount*.json|*appsettings.Production.json|*appsettings.Local.json)
+      fail "sensitive file staged: $f" "Move secrets to your secret manager (Azure Key Vault / EAS secrets); do not commit key material." ;;
+  esac
+done <<< "$staged_paths"
+
+# --- 2) Sensitive CONTENT (provider key shapes) -----------------------------
+added=$(git diff --cached --no-color -U0 | grep -E '^\+[^+]' | sed 's/^+//' || true)
+[ -z "$added" ] && exit 0
+
+declare -a patterns=(
+  'sk_(live|test)_[A-Za-z0-9]{24,}|Paystack secret key'
+  'pk_(live|test)_[A-Za-z0-9]{24,}|Paystack public key'
+  'SG\.[A-Za-z0-9_-]{22}\.[A-Za-z0-9_-]{43}|SendGrid API key'
+  'AIza[0-9A-Za-z_-]{35}|Firebase / Google API key'
+  '-----BEGIN (RSA |EC |OPENSSH |)PRIVATE KEY-----|Private key (service account or SSH)'
+  'https://[a-f0-9]{32}@[a-z0-9.-]+\.ingest\.sentry\.io/[0-9]+|Sentry DSN with secret'
+  'sk-(proj-)?[A-Za-z0-9_-]{32,}|OpenAI API key'
+  'AccountKey=[A-Za-z0-9+/=]{60,}|Azure Storage account key in connection string'
+  'DefaultEndpointsProtocol=https;AccountName=[a-z0-9]+;AccountKey=|Azure Storage connection string'
+  '[?&]sig=[A-Za-z0-9%+/=]{40,}|Azure SAS signature'
+  'ey[A-Za-z0-9_-]{20,}\.ey[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}|JWT-shaped token'
+  '(password|passwd|pwd|secret|api[_-]?key|client[_-]?secret)[[:space:]]*[:=][[:space:]]*["'\''][^"'\'']{12,}|Credential assignment with a literal value'
+)
+for entry in "${patterns[@]}"; do
+  pat="${entry%%|*}"; label="${entry#*|}"
+  if printf '%s' "$added" | grep -qiE "$pat"; then
+    fail "$label detected in staged content" \
+         "Secrets must never be committed. Move the value to Azure Key Vault / EAS secrets / .env (gitignored) and reference it via env var."
+  fi
+done
+
+exit 0

@@ -1,0 +1,10 @@
+# Codex subagent — platform-sdlc developer.
+# `developer_instructions` assembled by /init-workspace from:
+#   portable/mechanics/codex.md + portable/roles/developer.md
+name = "platform-sdlc-developer"
+description = "Implementation specialist on the monorepo — writes production code (no tests) for one approved task across SERVICE/WEB/MOBILE surfaces, ensures the build passes, follows all conventions, self-reviews before committing with Conventional Commits (`<type>(<surface>): …`, no issue ID). Phase 3."
+model = "gpt-5.4"
+sandbox_mode = "workspace-write"
+developer_instructions = """
+{{DEVELOPER_INSTRUCTIONS}}
+"""

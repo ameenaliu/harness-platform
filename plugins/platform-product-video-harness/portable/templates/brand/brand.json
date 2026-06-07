@@ -1,0 +1,49 @@
+{
+  "name": "Your Brand",
+  "tagline": "Your tagline here.",
+  "colors": {
+    "primary": "#2563EB",
+    "primaryAlt": "#60A5FA",
+    "accent": "#F59E0B",
+    "ink": "#0B1020",
+    "paper": "#F8FAFC",
+    "muted": "#64748B"
+  },
+  "fonts": {
+    "heading": "Inter",
+    "body": "Inter",
+    "mono": "JetBrainsMono"
+  },
+  "logo": {
+    "path": "brand/logo.svg",
+    "minSizePx": 56,
+    "safeAreaPx": 32
+  },
+  "lowerThird": {
+    "barHeightPx": 96,
+    "barOpacity": 0.85,
+    "barColor": "ink",
+    "textColor": "paper"
+  },
+  "captionStrip": {
+    "fontSizePx": 48,
+    "lineHeightPx": 60,
+    "bgColor": "ink",
+    "bgOpacity": 0.8,
+    "textColor": "paper",
+    "paddingPx": 16,
+    "maxWordsPerLine": 7,
+    "maxLines": 2
+  },
+  "personas": [
+    { "key": "end_user", "label": "primary end user of the product", "voice": "warm, plainspoken" },
+    { "key": "prospect", "label": "prospective customer evaluating the product", "voice": "curious, value-driven" },
+    { "key": "partner", "label": "partner / stakeholder integrated with the product", "voice": "professional, trust-building" }
+  ],
+  "tone": {
+    "default": "warm and credible — confident without hype",
+    "banned_words": ["revolutionary", "game-changing", "disrupt", "synergy", "leverage", "10x"],
+    "banned_phrases": ["AI-powered", "next-generation", "world-class"],
+    "preferred_verbs": ["track", "see", "manage", "grow", "save", "send", "get"]
+  }
+}

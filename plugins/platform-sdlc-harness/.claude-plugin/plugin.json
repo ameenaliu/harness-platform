@@ -1,0 +1,10 @@
+{
+  "name": "platform-sdlc-harness",
+  "description": "AI-driven SDLC pipeline on GitHub — Issues + sub-issues + Projects (v2) on a service/web/mobile monorepo. Four-workflow pipeline: discovery-workflow (idea → Epic/Feature/Story/Task tree with hierarchical numbering E1/F1.1/S1.1.1 + Markdown issue bodies + sub-issue links + Blocked-by/Blocks deps) → backlog-workflow (refine a Story with issue/body edits, preserves numbering, manages dependencies) → dev-workflow (10-phase build with 3 gates + 3 holistic reviews + Phase 8 architecture/rules reconciliation, two-tier branching, gh PRs) → pr-review (post-PR holistic comments via gh). 4 specialized agents (planner with 5 modes, developer, reviewer with 5 modes incl. gh PR commenting, tester). 7 hooks (4 data-policy + 3 stack quality-check). 19 skills total (adds github-rendering canonical structures + sub-issue/dependency protocol). Uses the gh CLI (no MCP server). Works with Claude Code and OpenAI Codex.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Aliu Ameen"
+  },
+  "license": "MIT",
+  "keywords": ["github", "sdlc", "workflow", "issues", "projects", "gh-cli", "dotnet", "react", "expo", "agents", "hooks", "data-policy"]
+}

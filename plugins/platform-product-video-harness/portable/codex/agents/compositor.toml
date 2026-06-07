@@ -1,0 +1,11 @@
+# Codex subagent — platform-product-video compositor.
+# `developer_instructions` assembled by /init-video-workspace from:
+#   portable/mechanics/codex.md + portable/roles/compositor.md
+name = "platform-video-compositor"
+description = "Phase 3 — generates compositions/<slug>.tsx, wires assets via staticFile(), registers 3 Compositions in Root.tsx (one per aspect ratio), then runs npx remotion render × 3 to produce silent preview MP4s. Hosts GATE #2 for visual approval. Enforces brand tokens, captions, composition decomposition."
+model = "gpt-5.4"
+sandbox_mode = "workspace-write"
+mcp_servers = []
+developer_instructions = """
+{{DEVELOPER_INSTRUCTIONS}}
+"""

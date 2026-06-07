@@ -1,0 +1,43 @@
+# Credentials — NEVER commit
+.env
+.env.*
+!.env.example
+
+# Node / TS build
+node_modules/
+*.tsbuildinfo
+.cache/
+
+# Remotion outputs (per-render)
+out/
+public/
+.remotion/
+
+# Per-project runtime artefacts (under projects/<slug>/)
+projects/*/_cache/
+projects/*/_preview/
+projects/*/_review/
+projects/*/audio/
+projects/*/out/
+projects/*/*.mp4
+
+# Per-language translation artefacts (under projects/<slug>/translations/<lang>/)
+projects/*/translations/*/_preview/
+projects/*/translations/*/audio/
+projects/*/translations/*/out/
+
+# Plugin runtime artefacts
+ai/
+.claude/context/
+.claude/settings.local.json
+.claude/logs/
+
+# OS junk
+.DS_Store
+Thumbs.db
+nul
+*.swp
+
+# Editor
+.idea/
+.vscode/

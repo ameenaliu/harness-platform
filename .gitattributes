@@ -1,0 +1,19 @@
+# Line endings: text files normalize to LF on commit; binaries unchanged.
+* text=auto eol=lf
+
+# Shell scripts and the pre-commit guard MUST stay LF and executable —
+# they're invoked as bash on every platform (Windows via WSL/Git Bash, macOS, Linux).
+*.sh        text eol=lf
+portable/guards/pre-commit  text eol=lf
+
+# Windows scripts stay CRLF.
+*.ps1       text eol=crlf
+*.cmd       text eol=crlf
+*.bat       text eol=crlf
+
+# Markdown / JSON / YAML / TOML — LF.
+*.md        text eol=lf
+*.json      text eol=lf
+*.yml       text eol=lf
+*.yaml      text eol=lf
+*.toml      text eol=lf

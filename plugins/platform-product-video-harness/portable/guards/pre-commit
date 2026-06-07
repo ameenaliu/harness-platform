@@ -1,0 +1,65 @@
+#!/bin/bash
+# platform-product-video-harness — portable data-policy guard (git pre-commit hook).
+#
+# Defense-in-depth for tools WITHOUT Claude Code's runtime hooks (Codex).
+# Mirrors the plugin's secrets-guard.sh + large-media-guard.sh, gated for ProductVideos.
+#
+# Install: copy to .git/hooks/pre-commit (chmod +x), or wire via Husky / core.hooksPath.
+# Bypass for a vetted commit: `git commit --no-verify` (use sparingly, NEVER for .env / large media).
+
+set -euo pipefail
+
+MAX_BYTES="${PRODUCT_VIDEO_MAX_BYTES:-10485760}"  # 10 MB
+
+fail() { echo "BLOCKED by platform-product-video pre-commit: $1" >&2; echo "$2" >&2; exit 1; }
+
+# --- 1) Sensitive PATHS ----------------------------------------------------
+staged_paths=$(git diff --cached --name-only --diff-filter=AM | tr '\\' '/')
+while IFS= read -r f; do
+  [ -z "$f" ] && continue
+  bn=$(basename "$f" | tr '[:upper:]' '[:lower:]')
+  # .env / .env.<anything> (but allow .env.example)
+  if [[ "$bn" =~ ^\.env(\..+)?$ ]] && [ "$bn" != ".env.example" ]; then
+    fail "sensitive file staged: $f" "Never commit .env files. Run 'git restore --staged $f' and add to .gitignore."
+  fi
+  case "$bn" in
+    *.secret|*.key|*.pfx|*.pem)
+      fail "sensitive file staged: $f" "Move secrets to .env (gitignored); do not commit key material." ;;
+    serviceaccount*.json)
+      fail "service-account JSON staged: $f" "Contains private key. Run 'git restore --staged $f'." ;;
+  esac
+done <<< "$staged_paths"
+
+# --- 2) Large media files staged -------------------------------------------
+while IFS= read -r f; do
+  [ -z "$f" ] && continue
+  if [ -f "$f" ]; then
+    sz=$(wc -c < "$f" 2>/dev/null || echo 0)
+    if [ "$sz" -gt "$MAX_BYTES" ]; then
+      mb=$((sz / 1024 / 1024))
+      limit_mb=$((MAX_BYTES / 1024 / 1024))
+      fail "$f is ${mb} MB (>$limit_mb MB limit)" "Move rendered media to out/ or _preview/ (gitignored), or to an external blob store. Or raise PRODUCT_VIDEO_MAX_BYTES env var deliberately."
+    fi
+  fi
+done <<< "$staged_paths"
+
+# --- 3) Sensitive CONTENT (API key shapes) ---------------------------------
+added=$(git diff --cached --no-color -U0 | grep -E '^\+[^+]' | sed 's/^+//' || true)
+[ -z "$added" ] && exit 0
+
+declare -a patterns=(
+  'sk_[a-fA-F0-9]{40,}|ElevenLabs API key shape (sk_…)'
+  'figd_[A-Za-z0-9_-]{30,}|Figma personal access token (figd_…)'
+  '\bAIza[0-9A-Za-z_-]{35}\b|Firebase / Google API key (AIza…)'
+  'xoxb-[0-9]+-[0-9]+-[A-Za-z0-9]+|Slack bot token'
+  'ey[A-Za-z0-9_-]{20,}\.ey[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}|JWT-shaped token'
+  '(password|passwd|pwd|secret|api[_-]?key|client[_-]?secret)[[:space:]]*[:=][[:space:]]*["'\''][^"'\'']{16,}|Credential assignment with literal value'
+)
+for entry in "${patterns[@]}"; do
+  pat="${entry%%|*}"; label="${entry#*|}"
+  if printf '%s' "$added" | grep -qiE "$pat"; then
+    fail "$label detected in staged content" "API keys belong in .env (gitignored). Never paste them into source files."
+  fi
+done
+
+exit 0

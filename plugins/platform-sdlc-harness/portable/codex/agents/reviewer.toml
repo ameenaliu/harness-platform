@@ -1,0 +1,13 @@
+# Codex subagent — platform-sdlc reviewer.
+# READ-ONLY for source code (Phases 3, 4, 6, 7). Phase 10 (post-PR review) additionally
+# posts PR comments via the `gh` CLI (no MCP server) — this is the only write the
+# reviewer ever makes. `developer_instructions` assembled by /init-workspace from:
+#   portable/mechanics/codex.md + portable/roles/reviewer.md
+# Phase 10 needs shell/network access so the reviewer can run `gh`; code edits stay disallowed.
+name = "platform-sdlc-reviewer"
+description = "Code quality gatekeeper for the monorepo — reviews diffs against the approved plan and conventions in 5 modes: per-task (Phase 3), holistic pre-test (Phase 4), per-test-task (Phase 6), holistic pre-PR (Phase 7), and post-PR with `gh` PR comments (Phase 10). Runs builds/tests but never edits source. Phase 10 is comment-only — never blocks the PR."
+model = "gpt-5.4"
+sandbox_mode = "read-only"
+developer_instructions = """
+{{DEVELOPER_INSTRUCTIONS}}
+"""

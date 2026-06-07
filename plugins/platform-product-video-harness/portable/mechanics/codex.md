@@ -1,0 +1,10 @@
+## Mechanics — OpenAI Codex
+
+- **Definition**: this role is a subagent at `.codex/agents/<name>.toml` (`name`, `description`, `developer_instructions`; optional `model`, `sandbox_mode`, `mcp_servers`). Codex runs **local tooling only** (ffmpeg, Node, curl, git) — no MCP servers are wired (`mcp_servers = []`). The orchestration that ties the roles together lives in the `platform-video-generate` skill (`.agents/skills/platform-video-generate/SKILL.md`) scaffolded into the ProductVideos repo.
+- **Delegation**: Codex spawns subagents **only when explicitly told to**. The workflow skill instructs the parent, at each phase, to "spawn the `<role>` subagent for this phase". Phases are sequential — no parallel spawning.
+- **Isolation**: each spawned subagent runs in its own thread. No git worktrees — video rendering is heavy I/O / CPU-bound, and serial execution is fine for a single video at a time.
+- **Read-only reviewer (Phase 5)**: `reviewer.toml` sets `sandbox_mode = "read-only"`.
+- **Narrator + `.env`**: the narrator subagent has `sandbox_mode = "workspace-write"` (needs to write audio + final mp4 outputs) but the workflow skill explicitly forbids editing `.env`. The `secrets-guard.sh` hook is the runtime backstop (Codex respects the same hook contract via `.git/hooks/pre-commit` and conventional checks).
+- **Gates**: the workflow skill instructs the parent to **STOP at each of the 3 human gates (GATE #1 after script, GATE #2 after preview render, GATE #3 after review)** and ask the human for `APPROVED` before spawning the next phase. Do not auto-advance past a gate.
+- **Status contract**: each subagent ends with the `📋 AGENT STATUS` block; the parent parses it to decide the next action.
+- **External tools**: ffmpeg, Node, curl invoked via shell. Codex's `sandbox_mode = "workspace-write"` allows these. The `secrets-guard.sh` + `large-media-guard.sh` checks (when wired as pre-commit hooks via the `portable/guards/` template) catch the same things Claude Code's runtime hooks catch.
