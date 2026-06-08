@@ -1,5 +1,29 @@
 # Changelog
 
+## 1.4.0 — Pluggable stack packs + Go service stack
+
+The harness is now **language/framework-agnostic**. Stacks are no longer hardwired to .NET/React/Expo — each surface's stack is a pluggable "pack" resolved from a registry, and **Go joins .NET as a first-class SERVICE stack**.
+
+### Stack pack architecture
+
+- **`packs/registry.json`** — single source of truth mapping each surface to the stacks it supports (`service` → `dotnet` | `go`; `web` → `react-turbo`; `mobile` → `expo`) and each stack to its manifest.
+- **`packs/<stack>/pack.json`** — per-stack manifest: `conventions_skill`, `advisory_skills`, build/test/lint commands + `build_gate`, `coverage_threshold`, detection globs, `tool_permissions`, `quality_hook`, `review_checklist_anchor`.
+- **`packs/README.md`** — the contract + a recipe for adding a stack (Java/Rust service, Angular/Svelte/Vue web, native/Flutter mobile) with no agent/role edits.
+- Every decision point now resolves the stack from the registry instead of hardcoding it: the 4 agents, the 4 portable roles, `portable/mechanics/claude.md`, `AGENTS.md.tmpl`, the dev-workflow SKILL + orchestrator-rules. Per-stack PR checklists moved into each conventions skill (anchored via the pack's `review_checklist_anchor`).
+
+### Go support (first-class SERVICE stack)
+
+- **`go-conventions`** — idiomatic Go service conventions (package layout, error wrapping with `%w`, context propagation, concurrency, testing) + a recommended library stack (chi, pgx+sqlc, golang-migrate, asynq/river, OTel+slog, oapi-codegen, testify+testcontainers-go) and a `SERVICE (Go)` PR checklist.
+- **`go-code-quality`** — golangci-lint (aggregator) + staticcheck + go vet + gofumpt + govulncheck; the Go analog of `dotnet-code-quality`.
+- `service-quality-check` hook detects the stack (`go.mod` → Go gate `go build ./...` + `golangci-lint run` + `go test ./...`; `*.sln` → the existing .NET gate).
+- `/init-workspace` + plugin `settings.json` add Go tool detection and Bash permissions (`go`, `golangci-lint`, `gofumpt`, `staticcheck`, `govulncheck`, `migrate`, `sqlc`, `oapi-codegen`).
+
+### init-workspace now prompts for the stack
+
+Stack selection is no longer assumed from a default — Step 2.4 detects the stack via each pack's `detect` globs and, when a surface is an empty scaffold or detection is ambiguous, **asks the user** which stack to adopt (options drawn from the registry) before recording it in `platform-context.md`. Step 7a's skill-scaffold copy is now the union of each chosen pack's `conventions_skill` + `advisory_skills` (adding a pack auto-scaffolds with no edit here).
+
+Skill count: 30 → 32 (`go-conventions`, `go-code-quality`).
+
 ## 1.3.0 — Native GitHub relationships, production-safety review, and a tested harness
 
 ### Critical fix — data-policy hooks were silently non-functional

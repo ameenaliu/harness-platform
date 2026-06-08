@@ -4,8 +4,8 @@
     "name": "Aliu Ameen"
   },
   "metadata": {
-    "description": "GitHub-native Claude Code + Codex harness suite, shareable across projects. Ships two plugins: platform-sdlc-harness (idea-to-PR pipeline driven by GitHub Issues + Projects) and platform-product-video-harness (Remotion + ElevenLabs product-video generation + localisation for social media, per-project brand kit).",
-    "version": "1.0.0"
+    "description": "GitHub-native Claude Code + Codex harness suite, shareable across projects. Ships two plugins: platform-sdlc-harness (idea-to-PR pipeline driven by GitHub Issues + Projects; stack-agnostic via pluggable packs — .NET + Go service, React web, Expo mobile) and platform-product-video-harness (Remotion + ElevenLabs product-video generation + localisation for social media, per-project brand kit).",
+    "version": "1.1.0"
   },
   "plugins": [
     {
