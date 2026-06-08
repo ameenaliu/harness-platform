@@ -27,10 +27,7 @@ wiring. Read every config value (`Org`, `Repo`, project number/owner) from
    - Every Feature has at least one Story; every Story has a parent Feature; every Feature has a parent Epic.
    If any check fails, surface the violations and ask the human whether to fix in D2 (`/discovery-workflow decompose <slug>`) or proceed anyway. Default: fix in D2.
 
-3. **Compose each item's Markdown body** per `skills/github-rendering/SKILL.md` (§Epic / §Feature / §Story structure). GitHub is Markdown-native — no HTML conversion. Build all bodies up-front in memory, keyed by human-id, so the create pass is pure `gh` posting. Cross-reference lists ("Features in this Epic", "Stories in this Feature") use `#(TBD)` placeholders that get patched in step 6 once each child has its real `#N`. Every body ends with the attribution footer:
-   ```
-   🤖 Generated with [Claude Code](https://claude.ai/claude-code)
-   ```
+3. **Compose each item's Markdown body** per `skills/github-rendering/SKILL.md` (§Epic / §Feature / §Story structure). GitHub is Markdown-native — no HTML conversion. Build all bodies up-front in memory, keyed by human-id, so the create pass is pure `gh` posting. Cross-reference lists ("Features in this Epic", "Stories in this Feature") use `#(TBD)` placeholders that get patched in step 6 once each child has its real `#N`. Every body carries **no AI/Claude attribution footer** — hard rule (`attribution-guard` blocks `🤖 Generated with Claude Code` / `Co-Authored-By: Claude`).
 
 4. **Create issues, top-down** (`gh issue create`), building a `human-id → #N` map as you go. Create the Epic first, then its Features, then each Feature's Stories. Capture the returned issue number and URL from `gh issue create --json number,url` (or parse the URL it prints). Write each `#N` back into the tracker stub immediately so a crash mid-run is resumable.
 
@@ -113,8 +110,6 @@ wiring. Read every config value (`Org`, `Repo`, project number/owner) from
    Created by `/discovery-workflow` from idea: "<idea title>"
    Features: <count>; Stories: <count>; Implementation dependencies: <link-count>
    Next step: refine each Story via `/backlog-workflow improve <#>`, then implement via `/dev-workflow <#>`.
-
-   🤖 Generated with [Claude Code](https://claude.ai/claude-code)
    ```
 
 10. **Update the tracker stub** with a `## GitHub issues (D3)` section listing every created item with its `#N` + URL, the resolved `human-id → #N` map, and an `## Implementation dependency links` subsection listing every link (blocked-by → blocks + status). Set `Phase: D3-DONE`, `Status: created-in-github`.

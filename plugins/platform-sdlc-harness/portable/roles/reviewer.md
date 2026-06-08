@@ -31,6 +31,7 @@ Run against the commit diff before reading the plan or code. If ANY check fails,
 3. **Task title `[<surface>]` prefix** — the task title in the plan / tracker MUST start with `[service]`, `[web]`, `[mobile]`, or a combination (e.g. `[mobile][service] ...`). If a developer commit references a task whose title is missing the prefix, that's a Phase 0 failure pointing at the planner.
 4. **No GitHub emoji shortcodes** in `.md` files (e.g. `:white_check_mark:`) — use literal Unicode emoji.
 5. **No sensitive files added** — no `.env`, `.env.*`, `.secret`, `.key`, `.pfx`, `.pem`, `serviceAccount*.json`, `appsettings.Production.json`, `appsettings.Local.json`.
+6. **No AI/Claude attribution** (hard rule) — commit messages, code, comments, and docs must contain NO `Co-Authored-By: Claude/Anthropic` trailer, no `noreply@anthropic.com` co-author, and no `Generated with Claude Code` / 🤖 line. Any occurrence → Phase 0 failure → `🔄 Changes Requested` with a `[R<n>]` comment. (Also enforced upstream by the `attribution-guard` hook — a legitimate human co-author is fine.)
 
 ### Phase A — Spec Compliance
 

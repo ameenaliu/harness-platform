@@ -185,8 +185,6 @@ Where `<summary-file>` contains:
 **Coverage**: <surface>=<pct>% (target <threshold>%)
 
 Inline comments: <count> posted across files.
-
-🤖 Generated with [Claude Code](https://claude.ai/claude-code)
 ```
 
 Record every returned comment `id` for the orchestrator's tracker update. **Never** call `gh pr review` with `--approve` or `--request-changes`, and never `gh pr merge` / `gh pr close` — Phase 10 is comment-only.
@@ -377,7 +375,3 @@ Verdict: INFORMATIONAL (comment-only — never blocks)
 - **Comment-only — never blocks the PR.** Even CRITICAL findings result in an `INFORMATIONAL` verdict. Never `--approve`, never `--request-changes`, never `gh pr merge` / `gh pr close`.
 - When invoked from `/dev-workflow` Phase 10, return the posted comment IDs so the orchestrator can record them in tracker `Phase 10 PR Review`.
 - When run standalone (not via dev-workflow), the local report at `.claude/pr-reviews/` is the only persistent artefact besides the PR comments.
-
----
-
-🤖 Generated with [Claude Code](https://claude.ai/claude-code)

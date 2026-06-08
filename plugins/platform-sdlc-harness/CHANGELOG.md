@@ -22,6 +22,10 @@ The harness is now **language/framework-agnostic**. Stacks are no longer hardwir
 
 Stack selection is no longer assumed from a default — Step 2.4 detects the stack via each pack's `detect` globs and, when a surface is an empty scaffold or detection is ambiguous, **asks the user** which stack to adopt (options drawn from the registry) before recording it in `platform-context.md`. Step 7a's skill-scaffold copy is now the union of each chosen pack's `conventions_skill` + `advisory_skills` (adding a pack auto-scaffolds with no edit here).
 
+### No AI/Claude attribution (hard, critical rule)
+
+- New **`attribution-guard`** hook (PreToolUse Write/Edit/Bash) blocks any `Co-Authored-By: Claude/Anthropic` trailer, `noreply@anthropic.com` co-author, or `Generated with Claude Code` / 🤖 line from entering commits, code, comments, or docs (a legitimate human co-author is unaffected). Wired into reviewer Phase 0, the developer/tester commit rules, and the dev-workflow non-negotiables — and the old **mandatory** `🤖 Generated with Claude Code` footers were removed from `create-pr`, `pr-review`, the discovery/backlog templates, `github-rendering`, `CLAUDE.md`, and `AGENTS.md.tmpl` (the attribution sections now state the prohibition). Hook count: 7 → 8 (5 data-policy + 3 quality-check).
+
 Skill count: 30 → 32 (`go-conventions`, `go-code-quality`).
 
 ## 1.3.0 — Native GitHub relationships, production-safety review, and a tested harness

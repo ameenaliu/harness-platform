@@ -88,7 +88,7 @@ Produce the readiness report following the format in `templates/readiness-report
 4. **Harness dimensions table**: flag + explanation per dimension (above).
 5. **Suggested improvements** section: concrete redrafts (titles, AC, body) the human can copy into the Story.
 6. **Open questions for the PO**: specific things this analysis can't decide.
-7. **Footer**: which `.claude/rules/*` and `.claude/architecture/*` files were consulted, plus the attribution `🤖 Generated with [Claude Code](https://claude.ai/claude-code)`.
+7. **Footer**: which `.claude/rules/*` and `.claude/architecture/*` files were consulted. Do NOT add any AI/Claude attribution (no `🤖 Generated with Claude Code`, no `Co-Authored-By: Claude/Anthropic`) — hard rule, enforced by `attribution-guard`.
 
 ### Step 5 — Present and Confirm
 

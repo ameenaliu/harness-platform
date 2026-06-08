@@ -79,9 +79,9 @@ Opening the repo prompts a one-time trust, after which the plugin is enabled aut
 | **Reviewer** | Read-only code review (per-task + holistic). Phase B runs the advisory scans (security-scan SAST/secrets/CVEs, react-doctor, Knip/madge, Roslynator) and raises new high-severity findings as comments. Phase 10 posts PR comments via `gh`. | Write/edit any source file |
 | **Tester** | Writes unit + integration tests per surface, plus MOBILE **Maestro** E2E flows; commits test code only. | Run any `gh`/remote write; touch `ai/*` |
 
-## Hooks (7)
+## Hooks (8)
 
-- **4 data-policy** (none optional): `pii-pattern-guard`, `secret-scan-guard`, `prompt-injection-guard`, `sensitive-file-guard`.
+- **5 data-policy** (none optional): `pii-pattern-guard`, `secret-scan-guard`, `prompt-injection-guard`, `sensitive-file-guard`, `attribution-guard` (blocks AI/Claude attribution in commits, code, comments, docs).
 - **3 stack quality-check** (pre-commit, per surface): `service-quality-check` (`dotnet build` + `dotnet test`), `web-quality-check` (`yarn lint` + `yarn test`), `mobile-quality-check` (`tsc` + `lint` + `test`). Each no-ops if the surface's toolchain/manifest isn't present.
 
 ## Capability, quality & security tools

@@ -68,10 +68,6 @@ This is the output format for `/backlog-analyze`. It provides a qualitative asse
 - `.claude/rules/<surface>/testing.md` — <list which read>
 - `.claude/architecture/<area>/<surface>.md` — <list which read>
 - `.claude/CLAUDE.md`
-
----
-
-🤖 Generated with [Claude Code](https://claude.ai/claude-code)
 ```
 
 ## Flag Catalog

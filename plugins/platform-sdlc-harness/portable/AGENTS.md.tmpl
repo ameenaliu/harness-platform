@@ -142,7 +142,4 @@ The same orchestrated SDLC runs on both tools: an **orchestrator** delegates to 
 
 ---
 
-Every artefact an agent produces (plans, trackers, PR descriptions, issue comments) ends with:
-```
-🤖 Generated with an AI coding agent (platform-sdlc-harness)
-```
+**Never** add AI/Claude (or tool) attribution to any artefact an agent produces (plans, trackers, PR descriptions/titles, issue bodies, issue comments, code, docs) — no `🤖 Generated with …` footer and no `Co-Authored-By: Claude/Anthropic` trailer. Hard, critical rule, enforced by the `attribution-guard` hook + reviewer Phase 0.

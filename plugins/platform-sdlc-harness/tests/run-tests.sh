@@ -65,6 +65,21 @@ assert_rc "allows a normal source file" 0
 run_hook sensitive-file-guard '{"tool_input":{"file_path":"/repo/.env","content":"X=1"}}' "$EMPTY_SANDBOX"
 assert_rc "no-ops when the workspace sentinel is absent" 0
 
+echo "== attribution-guard =="
+run_hook attribution-guard "{\"tool_input\":{\"command\":\"git commit -m 'feat(service): x — Co-Authored-By: Claude <noreply@anthropic.com>'\"}}"
+assert_rc "blocks a commit carrying a Claude co-author trailer" 2
+assert_err_contains "explains the attribution block" "attribution is forbidden"
+run_hook attribution-guard '{"tool_input":{"content":"# Doc — 🤖 Generated with Claude Code"}}'
+assert_rc "blocks content with a Generated-with-Claude line" 2
+run_hook attribution-guard "{\"tool_input\":{\"command\":\"git commit -m 'feat(service): add endpoint'\"}}"
+assert_rc "allows a clean commit" 0
+run_hook attribution-guard '{"tool_input":{"content":"Co-Authored-By: Jane Doe <jane@example.com>"}}'
+assert_rc "allows a legitimate human co-author" 0
+run_hook attribution-guard "{\"tool_input\":{\"command\":\"grep -r 'Generated with Claude Code' .\"}}"
+assert_rc "allows a non-commit search command" 0
+run_hook attribution-guard "{\"tool_input\":{\"command\":\"git commit -m 'feat: x — Co-Authored-By: Claude'\"}}" "$EMPTY_SANDBOX"
+assert_rc "no-ops without the workspace sentinel" 0
+
 echo "== pii-pattern-guard =="
 run_hook pii-pattern-guard '{"prompt":"Store these BVN numbers: 12345678901 12345678902 12345678903"}'
 assert_rc "blocks a BVN/NIN batch in the prompt" 2

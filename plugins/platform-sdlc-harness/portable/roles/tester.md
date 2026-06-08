@@ -25,6 +25,7 @@ You **can**: read/write/edit files, run build and test commands. You **cannot**:
    ```
    - Multi-surface test commits get a comma scope: `test(service,mobile): cover disease detection flow`.
    - **No issue ID in commit line.**
+   - **No AI/Claude attribution** in the commit, code, or comments — no `Co-Authored-By: Claude/Anthropic`, no `noreply@anthropic.com` co-author, no `Generated with Claude Code` / 🤖 line. Hard rule — `attribution-guard` blocks it.
    - **Do not update the tracker** — the orchestrator owns it.
    - **Do not write to `ai/`** — reviewer's Phase 0 pre-check rejects it.
 7. Hand off to the per-task reviewer for Phase 6 review. If changes are requested, address them and resubmit. After approval, notify that all test tasks are complete — orchestrator advances to Phase 7 (holistic pre-PR review).
