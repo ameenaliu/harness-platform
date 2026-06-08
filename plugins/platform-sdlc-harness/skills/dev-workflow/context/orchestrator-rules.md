@@ -49,7 +49,7 @@ These rules apply to ALL phases of the dev-workflow. Individual command files mu
 4. **Agent isolation**: Developer and Reviewer never share context windows.
 5. **Sequential within the monorepo.** One task at a time — each must be Reviewer-approved before the next begins. The in-scope project is single-repo by design; no cross-repo parallelism.
 6. **No tests before human approval at GATE #2**: Tests only after the human approves the implementation + Phase 4 findings.
-7. **Build must always pass**: Every commit passes `dotnet build` (SERVICE) / `yarn turbo build` (WEB) / `yarn tsc:build + test` (MOBILE).
+7. **Build must always pass**: Every commit satisfies the touched surface's pack `build_gate`, resolved from `packs/<stack>/pack.json` (e.g. `dotnet` → `dotnet build`; `go` → `go build ./...` + `golangci-lint run`; `react-turbo` → `yarn turbo build`; `expo` → `yarn tsc:build + test`).
 8. **Plan is the contract**: The approved plan is the single source of truth.
 9. **Tracker is persistent state**: Update in the working tree after every status change. The tracker is **never committed**.
 10. **Holistic-mode reviewer output flows to tracker, not to a separate file**: append findings to `Phase 4 Holistic Review` / `Phase 7 Holistic Review` / `Phase 10 PR Review` sections.

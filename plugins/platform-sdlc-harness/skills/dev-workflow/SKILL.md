@@ -26,7 +26,7 @@ Work tracking is GitHub-native: **Issues** typed by `type:*` label, wired into t
 3. **Develop** — Per-task developer + per-task reviewer loop on the monorepo (**sequential**). Orchestrator squash-merges on approval; sets each Task's Project Status `In Progress → In Review`.
 4. **Pre-Test Review** — Reviewer in `holistic-pre-test` mode audits the full diff (`<base>..<user-branch>`) vs every acceptance criterion. Findings appended to tracker `Phase 4 Holistic Review`. Informational — no state changes.
 5. **Approval** — Human reads Phase 4 findings + summary. **— GATE #2** before testing.
-6. **Test** — Tester writes tests per affected Surface (`SERVICE ≥ 80%`, `WEB ≥ 70%`, `MOBILE ≥ 85%` coverage on new/modified code), per-task reviewer reviews each.
+6. **Test** — Tester writes tests per affected Surface, meeting each surface's pack `coverage_threshold` on new/modified code (resolved from `packs/<stack>/pack.json` — e.g. `dotnet`/`go` 80, `react-turbo` 70, `expo` 85), per-task reviewer reviews each.
 7. **Pre-PR Review** — Reviewer in `holistic-pre-pr` mode audits full diff incl tests. Findings appended to tracker `Phase 7 Holistic Review`.
 8. **Architecture & Rules Reconciliation** — Planner in `architecture-audit` mode reads `.claude/architecture/*.md` + `.claude/rules/*/*.md` in the repo, diffs against the implementation, proposes doc updates, gets human approval, commits approved updates on the user branch as `docs(architecture):` / `docs(rules):`. INFORMATIONAL — never blocks.
 9. **PR Creation** — Orchestrator pushes the branch, opens one PR via `gh pr create`, with a body carrying `Closes #<story>` (auto-closes the Story on merge) + per-Task `Part of #<task>` links, sets reviewers via `gh pr edit --add-reviewer`, flips each Task's Project Status → `In Review`, and posts a tracker-summary comment on the Story. **— GATE #3** before opening.
@@ -69,8 +69,8 @@ Work tracking is GitHub-native: **Issues** typed by `type:*` label, wired into t
 - Show a brief plan before taking action on any task. Wait for approval before executing.
 - All commits: `<type>(<surface>): <imperative lowercase description>` — Conventional Commits, NO issue ID in commit line. `<type>` ∈ `feat | fix | chore | refactor | perf | docs | ci | test | build`. `<surface>` ∈ `service | web | mobile` (comma-separated for multi-surface). GitHub linking happens in the **PR body** via `Closes #<n>`, never in commits.
 - All branches follow the two-tier model: user branch is `users/<user-slug>/<feature-slug>/<impl-slug>` (Story with parent Feature) or `users/<user-slug>/bugs/<impl-slug>` (Bug or no parent Feature). PR targets `features/<feature-slug>/main` or `develop` respectively. Branch names are parameterized in `platform-context.md` (defaults `main`/`develop`). See `commands/plan.md`.
-- `dotnet build` must pass with zero warnings at all times for SERVICE tasks.
-- Per-Surface coverage thresholds: `SERVICE ≥ 80%`, `WEB ≥ 70%`, `MOBILE ≥ 85%` on new/modified code only.
+- Each surface's pack `build_gate` must pass at all times — resolved from `packs/<stack>/pack.json` (e.g. `dotnet` → `dotnet build` zero warnings; `go` → `go build ./...` + `golangci-lint run` clean; `react-turbo` → `yarn turbo lint typecheck build`; `expo` → `yarn tsc:build && yarn lint && yarn test`).
+- Coverage thresholds come from each surface's pack `coverage_threshold`, new/modified code only (defaults today: `dotnet`/`go` 80, `react-turbo` 70, `expo` 85).
 - Task tracker must be updated (in working tree) after every status change.
 - Reviewer NEVER writes or edits source files. Phase 10 GitHub PR comments are the only remote write the reviewer ever makes.
 - No code before plan approval (GATE #1). No tests before pre-test review approval (GATE #2). No PR before pre-PR review approval (GATE #3).
@@ -83,15 +83,17 @@ Work tracking is GitHub-native: **Issues** typed by `type:*` label, wired into t
 
 Git worktree creation may fail with `error: could not lock config file .git/config: File exists`, or with Husky pre-commit hook errors when WEB/MOBILE worktrees can't find their pnpm/yarn cache. If this happens, the Developer reports `Worktree: failed` in its status, and the orchestrator re-invokes without worktree isolation (commits land directly on the user branch).
 
-### Technology Stack
+### Technology Stack — pluggable via packs
 
-Conventions ship as **defaults**; each repo records its chosen stack/versions in `platform-context.md` at `/init-workspace` time. The matching conventions apply once a surface adopts that stack.
+Stacks are **pluggable**, not hardcoded. `packs/registry.json` maps each surface to the stacks it supports; each `packs/<stack>/pack.json` declares that stack's build/test/lint commands, `coverage_threshold`, detection globs, tool permissions, `conventions_skill`, and `advisory_skills`. Every agent, role, and phase **resolves the surface's chosen stack** (recorded per surface in `platform-context.md` at `/init-workspace` time) from the registry instead of assuming one. To add a stack — Java/Rust (service), Angular/Svelte/Vue (web), native/Flutter (mobile) — follow `packs/README.md`: author a conventions skill, write `packs/<stack>/pack.json`, register it. No agent/role/phase edits required.
 
-**SERVICE (.NET 8):** microservices under `service/` + a shared lib. C# 12 with nullable reference types, EF Core, Wolverine, Hangfire, OpenTelemetry + Seq logging. Testing: xUnit + FluentAssertions + Moq + Testcontainers + WebApplicationFactory + Refit. See `skills/dotnet-conventions/`.
+Supported today:
 
-**WEB (React 19 + Turbo):** Yarn + Turbo + Vite monorepo (`apps/`, `packages/`) under `web/`, React Query 5 (TanStack Query), Redux Toolkit, MUI + TailwindCSS, Vitest + React Testing Library + MSW. See `skills/react-turbo-conventions/`.
+**SERVICE** — `dotnet` (.NET 8: C# 12, EF Core, Wolverine, Hangfire, OTel+Seq; xUnit + FluentAssertions + Moq + Testcontainers + WebApplicationFactory + Refit — `skills/dotnet-conventions/`) **or** `go` (Go 1.23+: chi, pgx + sqlc, golang-migrate, asynq/river, OTel + slog, oapi-codegen; testing + testify + testcontainers-go — `skills/go-conventions/`).
 
-**MOBILE (Expo):** Expo Router under `mobile/`, Redux Toolkit + Persist (MMKV-backed), Firebase + Sentry, EAS secrets, `expo-secure-store`. Testing: Jest + `@testing-library/react-native`. See `skills/expo-mobile-conventions/`.
+**WEB** — `react-turbo` (React 19 + Turbo + Vite + Yarn; React Query 5, Redux Toolkit, MUI + TailwindCSS; Vitest + React Testing Library + MSW — `skills/react-turbo-conventions/`).
+
+**MOBILE** — `expo` (Expo Router; Redux Toolkit + Persist (MMKV-backed), Firebase + Sentry, EAS secrets, `expo-secure-store`; Jest + `@testing-library/react-native`; Maestro E2E — `skills/expo-mobile-conventions/`).
 
 ---
 

@@ -72,6 +72,18 @@ Part of the MOBILE capability. `/init-workspace` installs them if missing; all a
 - **Cleanliness** — [`dead-code-analysis`](../dead-code-analysis/SKILL.md): Knip + madge. **Bundle budget** — [`bundle-budget`](../bundle-budget/SKILL.md): size-limit on the exported JS bundle.
 - **Observability** — [`observability`](../observability/SKILL.md): new screens/flows capture errors via Sentry (RN error handler, `captureException` with context), leave breadcrumbs, track key events; never log PII.
 
+## PR checklist — MOBILE (Expo)
+
+> Reviewer Phase B reference (anchor `MOBILE (Expo)` in `packs/expo/pack.json`).
+
+- File-based routing in `app/` (Expo Router); state via Redux Toolkit + Persist (per `.claude/rules/mobile/code-style.md`).
+- Firebase / Sentry initialised in the right entry point; no secret in the JS bundle (use `expo-secure-store` / EAS secrets).
+- Permissions guarded; offline state handled; deep links registered in `app.config.ts`.
+- React Doctor + Knip/madge + expo-doctor surface no new high-severity finding.
+- New screens/flows capture errors via Sentry with no PII in telemetry (`observability`); no secrets in source (`security-scan`).
+- Maestro E2E flows present for the Story's journey (Phase 6).
+- Build & tests: `yarn tsc:build && yarn lint && yarn test` clean; coverage ≥ 85% on new/modified code.
+
 ## See also
 
 - [`dotnet-conventions`](../dotnet-conventions/SKILL.md) when the task also touches SERVICE.

@@ -74,6 +74,17 @@ All run in Developer self-review + Reviewer Phase B, scoped to new/modified file
 - Commit subject that doesn't match the Conventional Commits regex — Phase 0 catches.
 - Raw HTML elements (`<div>`, `<button>`, etc.) in `apps/` code — flagged by Phase B as a violation of `.claude/rules/web/code-style.md → Banned Elements`.
 
+## PR checklist — WEB (React 19 Turbo + Vite)
+
+> Reviewer Phase B reference (anchor `WEB (React 19 Turbo + Vite)` in `packs/react-turbo/pack.json`).
+
+- Components in the right `apps/<app>` or shared `packages/<pkg>`; no cross-package deep imports.
+- Uses the shared design-system components package (banned-HTML rule — never raw `<div>`/`<button>` per `.claude/rules/web/code-style.md`).
+- React Query 5 (TanStack Query) for server state, Redux Toolkit for UI state; no secret in the client bundle.
+- React Doctor + Knip/madge surface no new high-severity finding (perf, dead code, new cycles); bundle-size jump (size-limit) justified.
+- New screens/flows capture errors via Sentry with no PII in telemetry (`observability`); no secrets in source (`security-scan`).
+- Build & tests: `yarn turbo lint typecheck build` clean; tests green; coverage ≥ 70% on new/modified code.
+
 ## See also
 
 - [`dotnet-conventions`](../dotnet-conventions/SKILL.md) when the task also touches SERVICE.

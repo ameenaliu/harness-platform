@@ -69,6 +69,17 @@ user-invocable: true
 - **API contract** — [`api-contract-check`](../api-contract-check/SKILL.md): when controllers/DTOs/routing change, diff the OpenAPI spec (oasdiff) for breaking changes that would hurt web/mobile consumers.
 - **Observability** — [`observability`](../observability/SKILL.md): new endpoints/handlers emit structured Serilog logs + OpenTelemetry traces; no PII in telemetry.
 
+## PR checklist — SERVICE (.NET)
+
+> Reviewer Phase B reference (anchor `SERVICE (.NET)` in `packs/dotnet/pack.json`).
+
+- Layered structure respected (WebApi → Application → Domain → Infrastructure); domain has zero infra deps; no business logic in controllers; minimal APIs documented.
+- Wolverine/Hangfire handlers idempotent; outbox writes inside the same transaction as state changes.
+- Integration tests use a real DB (no mocks for the repository layer).
+- Roslynator surfaces no new maintainability finding from the diff (`dotnet-code-quality`); any EF Core migration is non-destructive/non-locking (`migration-safety`); no accidental breaking OpenAPI change (`api-contract-check`).
+- New endpoints/handlers instrumented (Serilog/OpenTelemetry, no PII) (`observability`); no secrets in source (`security-scan`).
+- Build & tests: `dotnet build` zero warnings; tests green; coverage ≥ 80% on new/modified code.
+
 ## See also
 
 - [`react-turbo-conventions`](../react-turbo-conventions/SKILL.md) when the task also touches WEB.

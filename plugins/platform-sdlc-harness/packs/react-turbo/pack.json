@@ -1,0 +1,42 @@
+{
+  "key": "react-turbo",
+  "surface": "web",
+  "label": "React 19 + Turbo",
+  "language": "TypeScript",
+  "detect": {
+    "files": ["turbo.json"],
+    "globs": ["web/**/package.json", "web/**/vite.config.*"]
+  },
+  "conventions_skill": "react-turbo-conventions",
+  "advisory_skills": [
+    "react-doctor",
+    "dead-code-analysis",
+    "bundle-budget",
+    "security-scan",
+    "observability"
+  ],
+  "coverage_threshold": 70,
+  "commit_scope": "web",
+  "test_frameworks": "Vitest + React Testing Library + MSW",
+  "commands": {
+    "build": "yarn turbo lint typecheck build --filter=...<affected-app>",
+    "build_gate": "no errors",
+    "test": "yarn turbo test --filter=...<affected-app>",
+    "lint": "yarn turbo lint typecheck --filter=...<affected-app>",
+    "format": "yarn prettier --write ."
+  },
+  "quality_hook": "web-quality-check.sh",
+  "tool_permissions": [
+    "Bash(yarn:*)",
+    "Bash(npm:*)",
+    "Bash(npx:*)",
+    "Bash(node:*)",
+    "Bash(eslint:*)",
+    "Bash(prettier:*)",
+    "Bash(react-doctor:*)",
+    "Bash(knip:*)",
+    "Bash(madge:*)",
+    "Bash(size-limit:*)"
+  ],
+  "review_checklist_anchor": "WEB (React 19 Turbo + Vite)"
+}

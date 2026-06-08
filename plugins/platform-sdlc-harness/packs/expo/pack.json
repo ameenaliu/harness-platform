@@ -1,0 +1,50 @@
+{
+  "key": "expo",
+  "surface": "mobile",
+  "label": "Expo (React Native)",
+  "language": "TypeScript",
+  "detect": {
+    "files": ["app.config.ts", "app.config.js", "app.json"],
+    "globs": ["mobile/**/package.json"]
+  },
+  "conventions_skill": "expo-mobile-conventions",
+  "advisory_skills": [
+    "react-doctor",
+    "dead-code-analysis",
+    "bundle-budget",
+    "expo-doctor",
+    "agent-device",
+    "maestro-e2e",
+    "security-scan",
+    "observability"
+  ],
+  "coverage_threshold": 85,
+  "commit_scope": "mobile",
+  "test_frameworks": "Jest (jest-expo) + @testing-library/react-native; Maestro for E2E",
+  "commands": {
+    "build": "yarn tsc:build && yarn lint && yarn test --watchAll=false",
+    "build_gate": "tsc + lint + unit tests pass (native build runs in EAS/CI)",
+    "test": "yarn test:coverage:check",
+    "e2e": "maestro test mobile/.maestro/",
+    "lint": "yarn lint",
+    "format": "yarn prettier --write ."
+  },
+  "quality_hook": "mobile-quality-check.sh",
+  "tool_permissions": [
+    "Bash(yarn:*)",
+    "Bash(npm:*)",
+    "Bash(npx:*)",
+    "Bash(node:*)",
+    "Bash(eslint:*)",
+    "Bash(prettier:*)",
+    "Bash(eas:*)",
+    "Bash(expo:*)",
+    "Bash(agent-device:*)",
+    "Bash(maestro:*)",
+    "Bash(react-doctor:*)",
+    "Bash(knip:*)",
+    "Bash(madge:*)",
+    "Bash(size-limit:*)"
+  ],
+  "review_checklist_anchor": "MOBILE (Expo)"
+}
