@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "description": "Stack registry — the single source of truth mapping each surface to the stacks it supports, and each stack to its pack manifest. Agents, portable roles, the dev-workflow orchestrator, and init-workspace resolve a surface's stack from here instead of hardcoding .NET / React / Expo. To add a stack: add an entry under the surface's `stacks`, add a `packs` pointer, and author packs/<key>/pack.json + skills/<conventions-skill>. See packs/README.md.",
+  "surfaces": {
+    "service": {
+      "label": "Service (backend)",
+      "dir": "service/",
+      "stacks": ["dotnet", "go"],
+      "default": "dotnet"
+    },
+    "web": {
+      "label": "Web (admin / web apps)",
+      "dir": "web/",
+      "stacks": ["react-turbo"],
+      "default": "react-turbo"
+    },
+    "mobile": {
+      "label": "Mobile (apps)",
+      "dir": "mobile/",
+      "stacks": ["expo"],
+      "default": "expo"
+    }
+  },
+  "packs": {
+    "dotnet": "packs/dotnet/pack.json",
+    "go": "packs/go/pack.json",
+    "react-turbo": "packs/react-turbo/pack.json",
+    "expo": "packs/expo/pack.json"
+  }
+}

@@ -84,13 +84,13 @@ If a prompt or file would require any of the above, refuse and ask for a sanitis
 
 Authoritative, per surface — read the matching skill before writing or reviewing code:
 
-| Surface | Detect by | Conventions |
+| Surface | Detect by | Conventions (chosen stack's `conventions_skill`) |
 |---|---|---|
-| SERVICE (.NET 8 microservices) | `service/**/*.csproj`, `service/**/*.sln` | `.agents/skills/dotnet-conventions/SKILL.md` |
-| WEB (React 19 Turbo) | `web/turbo.json`, `web/**/package.json` | `.agents/skills/react-turbo-conventions/SKILL.md` |
-| MOBILE (Expo) | `mobile/**/app.config.*`, `mobile/**/app.json` | `.agents/skills/expo-mobile-conventions/SKILL.md` |
+| SERVICE | `service/**/go.mod` → Go · `service/**/*.csproj`,`*.sln` → .NET | `.agents/skills/go-conventions/SKILL.md` **or** `.agents/skills/dotnet-conventions/SKILL.md` |
+| WEB | `web/turbo.json`, `web/**/package.json` → React + Turbo | `.agents/skills/react-turbo-conventions/SKILL.md` |
+| MOBILE | `mobile/**/app.config.*`, `mobile/**/app.json` → Expo | `.agents/skills/expo-mobile-conventions/SKILL.md` |
 
-Stacks ship as defaults; this repo's chosen stack/versions are recorded in `.claude/context/platform-context.md`. SOLID / DRY / YAGNI apply to all code in all languages — violations are blocking at review.
+Stacks are pluggable via `packs/registry.json`; this repo's chosen stack per surface is recorded in `.claude/context/platform-context.md`, and the conventions skill above is that stack's pack `conventions_skill`. SOLID / DRY / YAGNI apply to all code in all languages — violations are blocking at review.
 
 ### Capability, quality & security tools
 
@@ -105,12 +105,13 @@ Stacks ship as defaults; this repo's chosen stack/versions are recorded in `.cla
 | **security-scan** (Semgrep + Gitleaks + OSV/`--vulnerable`/`yarn npm audit`) | all | Dev self-review + Reviewer Phase B — SAST + secrets + dependency CVEs | `.agents/skills/security-scan/SKILL.md` |
 | **dead-code-analysis** (Knip + madge) | WEB, MOBILE | Dev self-review + Reviewer Phase B — unused code/deps + circular deps | `.agents/skills/dead-code-analysis/SKILL.md` |
 | **bundle-budget** (size-limit) | WEB, MOBILE | Dev self-review + Reviewer Phase B — bundle-size budgets | `.agents/skills/bundle-budget/SKILL.md` |
-| **dotnet-code-quality** (Roslynator) | SERVICE | Dev self-review + Reviewer Phase B — .NET maintainability + `--outdated` | `.agents/skills/dotnet-code-quality/SKILL.md` |
+| **dotnet-code-quality** (Roslynator) | SERVICE (dotnet) | Dev self-review + Reviewer Phase B — .NET maintainability + `--outdated` | `.agents/skills/dotnet-code-quality/SKILL.md` |
+| **go-code-quality** (golangci-lint/staticcheck/gofumpt) | SERVICE (go) | Dev self-review + Reviewer Phase B — Go lint/maintainability + `govulncheck` | `.agents/skills/go-code-quality/SKILL.md` |
 | **migration-safety** | SERVICE | Dev self-review + Reviewer Phase B — EF Core migration review (destructive/locking ops) | `.agents/skills/migration-safety/SKILL.md` |
 | **api-contract-check** (oasdiff) | SERVICE | Dev self-review + Reviewer Phase B — OpenAPI breaking-change diff | `.agents/skills/api-contract-check/SKILL.md` |
 | **observability** | all | Dev self-review + Reviewer Phase B — logging/tracing (Serilog/OTel) + error capture (Sentry), no PII | `.agents/skills/observability/SKILL.md` |
 
-agent-device = interactive verification; Maestro = committed E2E; React Doctor/expo-doctor/dotnet-code-quality/dead-code-analysis/bundle-budget = static quality; security-scan = SAST + secrets + dependency CVEs; migration-safety/api-contract-check = production-safety review for the service; observability = operability. None replaces the unit/integration suite or its coverage threshold.
+agent-device = interactive verification; Maestro = committed E2E; React Doctor/expo-doctor/dotnet-code-quality/go-code-quality/dead-code-analysis/bundle-budget = static quality; security-scan = SAST + secrets + dependency CVEs; migration-safety/api-contract-check = production-safety review for the service; observability = operability. The advisory set for a surface is its pack's `advisory_skills`. None replaces the unit/integration suite or its coverage threshold.
 
 ## Workflow — 10 phases, 3 human gates, 3 holistic reviews
 
@@ -141,7 +142,4 @@ The same orchestrated SDLC runs on both tools: an **orchestrator** delegates to 
 
 ---
 
-Every artefact an agent produces (plans, trackers, PR descriptions, issue comments) ends with:
-```
-🤖 Generated with an AI coding agent (platform-sdlc-harness)
-```
+**Never** add AI/Claude (or tool) attribution to any artefact an agent produces (plans, trackers, PR descriptions/titles, issue bodies, issue comments, code, docs) — no `🤖 Generated with …` footer and no `Co-Authored-By: Claude/Anthropic` trailer. Hard, critical rule, enforced by the `attribution-guard` hook + reviewer Phase 0.

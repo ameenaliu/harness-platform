@@ -1,0 +1,45 @@
+{
+  "key": "go",
+  "surface": "service",
+  "label": "Go",
+  "language": "Go",
+  "detect": {
+    "files": ["go.mod"],
+    "globs": ["**/*.go"]
+  },
+  "conventions_skill": "go-conventions",
+  "advisory_skills": [
+    "go-code-quality",
+    "api-contract-check",
+    "security-scan",
+    "observability"
+  ],
+  "coverage_threshold": 80,
+  "commit_scope": "service",
+  "test_frameworks": "go testing + testify (assert/require) + testcontainers-go + net/http/httptest",
+  "commands": {
+    "build": "go build ./...",
+    "build_gate": "go build ./... succeeds AND golangci-lint run is clean (zero issues)",
+    "test": "go test ./... -race -coverprofile=coverage.out -covermode=atomic",
+    "lint": "golangci-lint run",
+    "format": "gofumpt -w ."
+  },
+  "quality_hook": "service-quality-check.sh",
+  "tool_permissions": [
+    "Bash(go:*)",
+    "Bash(go build:*)",
+    "Bash(go test:*)",
+    "Bash(go vet:*)",
+    "Bash(go mod:*)",
+    "Bash(go run:*)",
+    "Bash(go tool:*)",
+    "Bash(golangci-lint:*)",
+    "Bash(gofumpt:*)",
+    "Bash(staticcheck:*)",
+    "Bash(migrate:*)",
+    "Bash(sqlc:*)",
+    "Bash(oapi-codegen:*)",
+    "Bash(oasdiff:*)"
+  ],
+  "review_checklist_anchor": "SERVICE (Go)"
+}

@@ -1,0 +1,42 @@
+{
+  "key": "dotnet",
+  "surface": "service",
+  "label": ".NET 8",
+  "language": "C#",
+  "detect": {
+    "files": ["global.json"],
+    "globs": ["**/*.csproj", "**/*.sln", "**/*.fsproj"]
+  },
+  "conventions_skill": "dotnet-conventions",
+  "advisory_skills": [
+    "dotnet-code-quality",
+    "migration-safety",
+    "api-contract-check",
+    "security-scan",
+    "observability"
+  ],
+  "coverage_threshold": 80,
+  "commit_scope": "service",
+  "test_frameworks": "xUnit + FluentAssertions + Moq + Testcontainers + WebApplicationFactory + Refit",
+  "commands": {
+    "build": "dotnet build <solution>",
+    "build_gate": "zero errors AND zero warnings",
+    "test": "dotnet test <solution> --collect:\"XPlat Code Coverage\"",
+    "lint": "dotnet format --verify-no-changes",
+    "format": "dotnet format"
+  },
+  "quality_hook": "service-quality-check.sh",
+  "tool_permissions": [
+    "Bash(dotnet build:*)",
+    "Bash(dotnet restore:*)",
+    "Bash(dotnet test:*)",
+    "Bash(dotnet format:*)",
+    "Bash(dotnet ef:*)",
+    "Bash(dotnet user-secrets:*)",
+    "Bash(dotnet list:*)",
+    "Bash(dotnet tool:*)",
+    "Bash(roslynator:*)",
+    "Bash(oasdiff:*)"
+  ],
+  "review_checklist_anchor": "SERVICE (.NET)"
+}

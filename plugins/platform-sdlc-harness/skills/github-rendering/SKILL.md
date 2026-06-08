@@ -231,7 +231,4 @@ If `project` is missing, stop and instruct: `gh auth refresh -s project,read:org
 
 ## Attribution
 
-Every issue body and issue comment the harness writes ends with:
-```
-🤖 Generated with [Claude Code](https://claude.ai/claude-code)
-```
+**Never** add AI/Claude attribution to an issue body, issue comment, or any artefact the harness writes — no `🤖 Generated with [Claude Code]` footer and no `Co-Authored-By: Claude/Anthropic` trailer. Hard, critical rule, enforced by the `attribution-guard` hook + reviewer Phase 0. (A legitimate human `Co-Authored-By:` is fine.)

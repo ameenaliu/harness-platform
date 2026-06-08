@@ -7,9 +7,11 @@
 # blocking: true
 # description: >
 #   Pre-commit gate for SERVICE changes. Fires before any `git commit` call. If
-#   the staged + working diff touches `service/,
-#   runs `dotnet build` (zero warnings enforced) and `dotnet test` against the
-#   the repo solution. Exits 2 to block the commit on failure. Otherwise silent.
+#   the staged + working diff touches `service/`, detects the SERVICE stack
+#   (dotnet via *.sln, or go via go.mod — see packs/registry.json) and runs that
+#   stack's build + test gate: dotnet → `dotnet build` (zero warnings) +
+#   `dotnet test`; go → `go build ./...` + `golangci-lint run` + `go test ./...`.
+#   Exits 2 to block the commit on failure. Otherwise silent.
 # ---
 set -euo pipefail
 [ ! -f "${CLAUDE_PROJECT_DIR:-.}/.claude/context/platform-context.md" ] && exit 0
@@ -19,8 +21,7 @@ CMD=$(printf '%s' "$INPUT" | python3 -c "import sys,json; d=json.load(sys.stdin)
 case "$CMD" in git\ commit*|git\ -C*\ commit*) : ;; *) exit 0 ;; esac
 
 ROOT="${CLAUDE_PROJECT_DIR:-$(git rev-parse --show-toplevel 2>/dev/null)}"
-SLN=$( find "$ROOT/service" -maxdepth 3 -name "*.sln" 2>/dev/null | head -1 )
-[ -z "$SLN" ] && exit 0
+[ -d "$ROOT/service" ] || exit 0
 
 CHANGED=$( ( git -C "$ROOT" diff --name-only HEAD 2>/dev/null
              git -C "$ROOT" diff --name-only --cached 2>/dev/null
@@ -28,27 +29,59 @@ CHANGED=$( ( git -C "$ROOT" diff --name-only HEAD 2>/dev/null
            | grep -E '^service/' | sort -u || true )
 [ -z "$CHANGED" ] && exit 0
 
-run() { echo "[service-quality-check] $*" >&2; "$@" 2>&1 || { echo "[service-quality-check] BLOCKED: $* failed. Fix and retry." >&2; exit 2; } ; }
+# --- Detect the SERVICE stack from files present under service/ (pack detect globs) ---
+GOMOD=$( find "$ROOT/service" -maxdepth 3 -name "go.mod" 2>/dev/null | head -1 )
+SLN=$( find "$ROOT/service" -maxdepth 3 -name "*.sln" 2>/dev/null | head -1 )
 
-# dotnet build with warnings-as-errors-equivalent: fail if any warning lines appear
-echo "[service-quality-check] dotnet build (zero warnings enforced)" >&2
-BUILD_OUTPUT=$( dotnet build "$SLN" --nologo 2>&1 )
-echo "$BUILD_OUTPUT" >&2
-if echo "$BUILD_OUTPUT" | grep -qE 'error\s+\w+\d+:|FAILED'; then
-  echo "[service-quality-check] BLOCKED: dotnet build had errors." >&2
-  exit 2
-fi
-if echo "$BUILD_OUTPUT" | grep -qE 'Warning\(s\)\s+[1-9]'; then
-  echo "[service-quality-check] BLOCKED: dotnet build had warnings (zero warnings required)." >&2
-  exit 2
+# --- Go stack ---
+if [ -n "$GOMOD" ]; then
+  GODIR=$( dirname "$GOMOD" )
+  echo "[service-quality-check] Go stack detected ($GODIR)" >&2
+  echo "[service-quality-check] go build ./..." >&2
+  if ! ( cd "$GODIR" && go build ./... ) >&2 2>&1; then
+    echo "[service-quality-check] BLOCKED: go build failed. Fix and retry." >&2
+    exit 2
+  fi
+  if command -v golangci-lint >/dev/null 2>&1; then
+    echo "[service-quality-check] golangci-lint run" >&2
+    if ! ( cd "$GODIR" && golangci-lint run ) >&2 2>&1; then
+      echo "[service-quality-check] BLOCKED: golangci-lint found issues. Fix and retry." >&2
+      exit 2
+    fi
+  else
+    echo "[service-quality-check] golangci-lint not installed — skipping lint gate (advisory)." >&2
+  fi
+  echo "[service-quality-check] go test ./..." >&2
+  if ! ( cd "$GODIR" && go test ./... ) >&2 2>&1; then
+    echo "[service-quality-check] BLOCKED: go test failed. Fix and retry." >&2
+    exit 2
+  fi
+  echo "[service-quality-check] OK (go)" >&2
+  exit 0
 fi
 
-# Tests — scope by changed test projects when feasible; otherwise full suite
-echo "[service-quality-check] dotnet test" >&2
-if ! dotnet test "$SLN" --nologo --no-build 2>&1; then
-  echo "[service-quality-check] BLOCKED: tests failed." >&2
-  exit 2
+# --- .NET stack ---
+if [ -n "$SLN" ]; then
+  echo "[service-quality-check] .NET stack detected ($SLN)" >&2
+  echo "[service-quality-check] dotnet build (zero warnings enforced)" >&2
+  BUILD_OUTPUT=$( dotnet build "$SLN" --nologo 2>&1 )
+  echo "$BUILD_OUTPUT" >&2
+  if echo "$BUILD_OUTPUT" | grep -qE 'error\s+\w+\d+:|FAILED'; then
+    echo "[service-quality-check] BLOCKED: dotnet build had errors." >&2
+    exit 2
+  fi
+  if echo "$BUILD_OUTPUT" | grep -qE 'Warning\(s\)\s+[1-9]'; then
+    echo "[service-quality-check] BLOCKED: dotnet build had warnings (zero warnings required)." >&2
+    exit 2
+  fi
+  echo "[service-quality-check] dotnet test" >&2
+  if ! dotnet test "$SLN" --nologo --no-build 2>&1; then
+    echo "[service-quality-check] BLOCKED: tests failed." >&2
+    exit 2
+  fi
+  echo "[service-quality-check] OK (dotnet)" >&2
+  exit 0
 fi
 
-echo "[service-quality-check] OK" >&2
+# No recognised SERVICE stack files yet (empty scaffold) — nothing to gate.
 exit 0

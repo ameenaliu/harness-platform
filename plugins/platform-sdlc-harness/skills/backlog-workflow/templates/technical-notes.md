@@ -121,10 +121,6 @@ Adapt the concrete component names below to the repo's actual conventions in `.c
 - `.claude/rules/<backend|web|mobile>/code-style.md` — <list>
 - `.claude/rules/<backend|web|mobile>/testing.md` — <list>
 - `.claude/CLAUDE.md`
-
----
-
-🤖 Generated with [Claude Code](https://claude.ai/claude-code)
 ```
 
 ## Guidelines

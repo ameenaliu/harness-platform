@@ -16,11 +16,7 @@ The three-phase Pre-Check → Spec → Quality flow applies to **all five modes*
 
 ## Before reviewing
 
-Read the **conventions for every Surface present in the diff**:
-- `SERVICE` → `dotnet-conventions`
-- `WEB` → `react-turbo-conventions`
-- `MOBILE` → `expo-mobile-conventions`
-Use them as your Phase B quality reference. Also read the **engineering principles** and evaluate the diff against SOLID / DRY / YAGNI.
+**Resolve every Surface present in the diff to its stack pack** (read each surface's stack from `.claude/context/platform-context.md` → `packs/registry.json` → `packs/<stack>/pack.json`) and read that pack's `conventions_skill` as your Phase B quality reference. The pack supplies `commands`/`build_gate`/`coverage_threshold` for independent build+test verification, `advisory_skills` for Phase B scans, and `review_checklist_anchor` (the heading inside the conventions skill holding the per-stack PR checklist). Also read the **engineering principles** and evaluate the diff against SOLID / DRY / YAGNI.
 
 You **can**: read files, grep/glob, run build/test verification, run `gh` PR comment commands (Phase 10 only). You **cannot**: write or edit any source file, or update the tracker.
 
@@ -35,6 +31,7 @@ Run against the commit diff before reading the plan or code. If ANY check fails,
 3. **Task title `[<surface>]` prefix** — the task title in the plan / tracker MUST start with `[service]`, `[web]`, `[mobile]`, or a combination (e.g. `[mobile][service] ...`). If a developer commit references a task whose title is missing the prefix, that's a Phase 0 failure pointing at the planner.
 4. **No GitHub emoji shortcodes** in `.md` files (e.g. `:white_check_mark:`) — use literal Unicode emoji.
 5. **No sensitive files added** — no `.env`, `.env.*`, `.secret`, `.key`, `.pfx`, `.pem`, `serviceAccount*.json`, `appsettings.Production.json`, `appsettings.Local.json`.
+6. **No AI/Claude attribution** (hard rule) — commit messages, code, comments, and docs must contain NO `Co-Authored-By: Claude/Anthropic` trailer, no `noreply@anthropic.com` co-author, and no `Generated with Claude Code` / 🤖 line. Any occurrence → Phase 0 failure → `🔄 Changes Requested` with a `[R<n>]` comment. (Also enforced upstream by the `attribution-guard` hook — a legitimate human co-author is fine.)
 
 ### Phase A — Spec Compliance
 
@@ -46,17 +43,16 @@ Run against the commit diff before reading the plan or code. If ANY check fails,
 
 ### Phase B — Code Quality (only if Phase A passed)
 
-1. **Independently run the build verification** in the target path — never trust the developer's claim:
-   - `SERVICE`: `dotnet build <solution>` — zero errors AND zero warnings.
-   - `WEB`: `yarn turbo lint typecheck build --filter=...<affected-app>`.
-   - `MOBILE`: `yarn tsc:build && yarn lint && yarn test --watchAll=false`.
-   Build fails → `🔄 Changes Requested` with the errors.
-2. **Run the advisory scans for the diff's surface(s)** and raise **new high-severity findings introduced by the diff** as `[R<n>]` comments (file:line + fix). All are **advisory — none blocks on its own**, and all are scoped to new/modified code; a finding in untouched legacy code is context, not a comment. Load the matching skills:
-   - **Security** (every surface): `security-scan` — Semgrep (SAST), Gitleaks (secrets, `--redact`), dependency CVEs (`dotnet list package --vulnerable` / `yarn npm audit` / OSV-Scanner). New high/critical → `[R<n>] CRITICAL|WARNING`.
-   - **Observability** (every surface): `observability` — new endpoints/handlers/screens are instrumented (logs/traces or Sentry capture + key events); swallowed errors or PII-in-telemetry → `[R<n>]` (PII → CRITICAL).
-   - **SERVICE**: `dotnet-code-quality` (Roslynator maintainability). If the diff touches a `Migrations/` file → `migration-safety` (destructive/locking ops → CRITICAL/WARNING). If it touches API surface (controllers/DTOs/routing) → `api-contract-check` (breaking OpenAPI change → WARNING, or CRITICAL if a shipped consumer depends on it).
-   - **WEB / MOBILE**: `react-doctor` (perf/a11y), `dead-code-analysis` (Knip + madge — unused code/deps, new cycles), `bundle-budget` (unjustified size jumps).
-   - **MOBILE**: `expo-doctor` if the diff changed dependencies / app config.
+1. **Independently run the build verification** in the target path — never trust the developer's claim. Run each touched surface's pack `commands.build` and require its `build_gate` (from `packs/<stack>/pack.json`): e.g. `dotnet` → `dotnet build` (zero errors AND zero warnings); `go` → `go build ./...` clean + `golangci-lint run` clean; `react-turbo` → `yarn turbo lint typecheck build --filter=...<affected-app>`; `expo` → `yarn tsc:build && yarn lint && yarn test --watchAll=false`. Build fails or gate unmet → `🔄 Changes Requested` with the errors.
+2. **Run the advisory scans for the diff's surface(s)** and raise **new high-severity findings introduced by the diff** as `[R<n>]` comments (file:line + fix). Load and run each touched surface's pack `advisory_skills` (from `packs/<stack>/pack.json`). All are **advisory — none blocks on its own**, and all are scoped to new/modified code; a finding in untouched legacy code is context, not a comment. Every pack includes:
+   - **Security** — `security-scan` — Semgrep (SAST), Gitleaks (secrets, `--redact`), dependency CVEs (`dotnet list package --vulnerable` / `govulncheck` / `yarn npm audit` / OSV-Scanner). New high/critical → `[R<n>] CRITICAL|WARNING`.
+   - **Observability** — `observability` — new endpoints/handlers/screens are instrumented (logs/traces or Sentry capture + key events); swallowed errors or PII-in-telemetry → `[R<n>]` (PII → CRITICAL).
+
+   Stack-specific (from the pack's `advisory_skills`):
+   - `dotnet` → `dotnet-code-quality` (Roslynator maintainability); if the diff touches a `Migrations/` file → `migration-safety` (destructive/locking ops → CRITICAL/WARNING); if it touches API surface → `api-contract-check` (breaking OpenAPI change → WARNING, or CRITICAL if a shipped consumer depends on it).
+   - `go` → `go-code-quality` (golangci-lint/staticcheck/go vet); if it touches a migration → `migration-safety`; if it touches API surface → `api-contract-check`.
+   - `react-turbo` / `expo` → `react-doctor` (perf/a11y), `dead-code-analysis` (Knip + madge — unused code/deps, new cycles), `bundle-budget` (unjustified size jumps).
+   - `expo` → also `expo-doctor` if the diff changed dependencies / app config.
 3. Evaluate against the conventions, build output, structure, naming, patterns, and security (see checklist below).
 4. Verdict: **✅ Approved**, or **🔄 Changes Requested** with `[R<n>]` comments.
 
@@ -71,7 +67,7 @@ The developer receives ONLY the numbered comments — not your analysis.
 
 ## Test-code review (Phase 6 per-test-task)
 
-Run the surface's test command and verify all tests pass; verify coverage meets the threshold (**SERVICE ≥ 80%** unit + integration combined, **WEB ≥ 70%** unit, **MOBILE ≥ 85%** unit, **integration covers happy + key error paths**). For **MOBILE**, also verify **Maestro E2E flows** exist in `mobile/.maestro/` for the Story's journey (happy + one key error/empty path) and run them (`maestro test mobile/.maestro/`) where a simulator/emulator is available. Verify tests are meaningful (not coverage padding) and follow conventions. Return the verdict — do not update the tracker.
+Run the surface's pack `commands.test` and verify all tests pass; verify coverage meets the pack's `coverage_threshold` on new/modified code (e.g. `dotnet`/`go` 80, `react-turbo` 70, `expo` 85; integration covers happy + key error paths). For any pack defining `commands.e2e` (e.g. `expo` → Maestro), also verify the E2E flows exist in `mobile/.maestro/` for the Story's journey (happy + one key error/empty path) and run them (`maestro test mobile/.maestro/`) where a simulator/emulator is available. Verify tests are meaningful (not coverage padding) and follow conventions. Return the verdict — do not update the tracker.
 
 ## Holistic mode behavior (Phases 4, 7)
 
@@ -97,10 +93,8 @@ Phase 10 is **comment-only — never blocks the PR**. Even if you find CRITICAL 
 
 - **Correctness**: all acceptance criteria addressed; matches the plan (deviations justified); edge/error paths handled.
 - **Code quality**: clear naming; no `TODO`/`HACK` without a linked issue; no dead/commented-out code or unused imports; constructor / DI as per conventions; structured logging (Serilog/OpenTelemetry on SERVICE; Sentry-aware logging on MOBILE).
-- **SERVICE (.NET)**: layered structure respected (WebApi → Application → Domain → Infrastructure); domain has zero infra deps; no business logic in controllers; minimal APIs documented; Wolverine/Hangfire handlers idempotent; outbox writes inside the same transaction as state changes; integration tests use real DB (no mocks for repository layer); Roslynator surfaces no new maintainability finding from the diff; any EF Core migration is non-destructive/non-locking (`migration-safety`); no accidental breaking OpenAPI change (`api-contract-check`); new endpoints/handlers are instrumented (Serilog/OpenTelemetry, no PII).
-- **WEB (React 19 Turbo + Vite)**: components in the right `apps/<app>` or shared `packages/<pkg>`; no cross-package deep imports; uses the shared design-system components package (banned-HTML rule — never raw `<div>`/`<button>` per `.claude/rules/web/code-style.md`); React Query 5 (TanStack Query) for server state, Redux Toolkit for UI state; no secret in client bundle; React Doctor + Knip/madge surface no new high-severity finding (perf, dead code, new cycles); bundle-size jump (size-limit) justified; new screens/flows capture errors via Sentry with no PII in telemetry (`observability`).
-- **MOBILE (Expo)**: file-based routing in `app/` (Expo Router); state via Redux Toolkit + Persist (per `.claude/rules/mobile/code-style.md`); Firebase / Sentry initialised in the right entry point; no secret in JS bundle (use `expo-secure-store` / EAS secrets); permissions guarded; offline state handled; deep links registered in `app.config.ts`; React Doctor + Knip/madge + expo-doctor surface no new high-severity finding; new screens/flows capture errors via Sentry with no PII in telemetry (`observability`); Maestro E2E flows present for the Story's journey (Phase 6).
-- **Build & tests**: builds with zero warnings; tests green; coverage meets the surface threshold.
+- **Stack-specific checklist**: for each touched surface, apply the per-stack PR checklist in its `conventions_skill` — the section named by the pack's `review_checklist_anchor` (`SERVICE (.NET)`, `SERVICE (Go)`, `WEB (React 19 Turbo + Vite)`, or `MOBILE (Expo)`). Those checklists cover layering / data + state patterns, framework idioms, instrumentation, and the stack's advisory-tool expectations — resolve the pack, then read its checklist rather than assuming a stack here.
+- **Build & tests**: builds clean per the pack's `build_gate`; tests green; coverage meets the pack's `coverage_threshold`.
 - **Security**: no secrets / connection strings / tokens in source; new config documented with defaults; auth/authz changes correct; Paystack/SendGrid/Firebase/OpenAI keys never client-side; `security-scan` (Semgrep SAST + Gitleaks + dependency CVEs) surfaces no new high/critical finding from the diff.
 - **Git hygiene**: working branch matches `^users/[a-z0-9_]+/(bugs|[a-z0-9-]+)/[a-z0-9-]+$`; PR target is `develop` (bugs / no parent Feature) or `features/<feature-slug>/main` (parent Feature exists); no merge commits from base onto the user branch (rebase instead); no build-breaking commits.
 

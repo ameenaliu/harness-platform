@@ -55,18 +55,15 @@ Failure policy: warn + continue. Local tracker + git are source of truth; rows w
     - Bug or no-parent-Feature work: `users/<user-slug>/bugs/<impl-slug>` → PR target = `develop`.
   - `<user-slug>` = `<last-initial>_<first-name>` lowercase (e.g. `a_aliu` for Aliu Ameen).
   - **PR target**: always the chosen base — never another user's branch.
-- Every commit body ends with: `Co-Authored-By: Claude Code <noreply@anthropic.com>`
 
-## Generated-Output Attribution
+## No AI/Claude Attribution (hard, critical rule)
 
-Every file or external artifact the harness produces (plan docs, task trackers,
-PR descriptions, issue comments, readiness reports, story refinements,
-technical notes) must end with:
-```
-🤖 Generated with [Claude Code](https://claude.ai/claude-code)
-```
-Commits use the `Co-Authored-By` trailer instead. Conversation-only output (status
-blocks, dashboards, gate prompts) is exempt.
+**Never** add AI/Claude attribution to anything the harness produces — commits, code, comments, documents, plan docs, task trackers, PR titles/bodies, issue bodies, issue comments, readiness reports, story refinements, technical notes. Specifically forbidden:
+
+- `Co-Authored-By: Claude` / `Co-Authored-By: …Anthropic` trailers, and any `noreply@anthropic.com` co-author.
+- `🤖 Generated with [Claude Code]` / `Generated with Claude Code` footers.
+
+Enforced by the `attribution-guard` hook (blocks the commit/write) and reviewer Phase 0 (blocks the change). A legitimate human `Co-Authored-By:` is fine.
 
 ## Workflow surface (4 workflows — pipeline)
 
@@ -149,12 +146,13 @@ This harness operates on **product codebases that may handle real customer data*
 - Bulk PII (user lists, transaction batches with 10+ UUIDs, Nigerian BVN / NIN, IBAN/PAN, bulk +234 phones).
 - Prompt-injection-shaped content from untrusted file reads (`<system>`, `Ignore previous`).
 
-Enforcement (defense-in-depth) — **4 data-policy hooks**, none optional:
+Enforcement (defense-in-depth) — **5 data-policy hooks**, none optional:
 
 - `hooks/pii-pattern-guard.sh` — UserPromptSubmit; blocks PII/credential patterns in user input.
 - `hooks/secret-scan-guard.sh` — PreToolUse Write/Edit; blocks Paystack/SendGrid/Firebase/Sentry/OpenAI/Azure key shapes.
 - `hooks/prompt-injection-guard.sh` — PreToolUse Read on large files; flags `<system>` / `Ignore previous` injection.
 - `hooks/sensitive-file-guard.sh` — PreToolUse Write/Edit; blocks `.env`, `.env.*`, `.secret`, `.key`, `.pfx`, `.pem`, `serviceAccount*.json`, `appsettings.{Production,Local}.json`.
+- `hooks/attribution-guard.sh` — PreToolUse Write/Edit/Bash; blocks AI/Claude attribution (`Co-Authored-By: Claude/Anthropic`, `noreply@anthropic.com`, `Generated with Claude Code` / 🤖) in commits, code, comments, and docs.
 
 Plus **3 stack quality-check hooks** (`service`/`web`/`mobile`) gating `git commit` on build + lint + tests for the touched surface.
 

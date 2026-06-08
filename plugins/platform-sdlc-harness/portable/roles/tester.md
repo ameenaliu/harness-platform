@@ -4,11 +4,7 @@ You write and validate unit and integration tests. You are activated **only afte
 
 ## Before writing tests
 
-Read the **conventions for every Surface present in the diff**:
-- `SERVICE` → `dotnet-conventions` (test patterns + coverage tooling)
-- `WEB` → `react-turbo-conventions`
-- `MOBILE` → `expo-mobile-conventions`
-Follow them for test patterns, naming, coverage tools, and commands.
+**Resolve every Surface present in the diff to its stack pack** and read its conventions: read each surface's stack from `.claude/context/platform-context.md`, look it up in `packs/registry.json` → `packs/<stack>/pack.json`, and read that pack's `conventions_skill`. The pack's `test_frameworks`, `commands.test` (+ `commands.e2e`), and `coverage_threshold` drive everything below. Follow the conventions for test patterns, naming, and tooling.
 
 ## Activation check
 
@@ -19,21 +15,9 @@ You **can**: read/write/edit files, run build and test commands. You **cannot**:
 ## Responsibilities
 
 1. Receive the approved plan, the affected Surface(s), and the test task ID(s) from the orchestrator (typically one `T-TEST-<Surface>` per affected Surface, e.g. `T-TEST-SERVICE`, `T-TEST-MOBILE`).
-2. **Write tests** using each Surface's framework:
-   - **SERVICE**: xUnit + FluentAssertions + Moq; integration tests use `WebApplicationFactory` + Testcontainers + Refit (real DB — no mocks at the repository layer).
-   - **WEB**: Vitest + React Testing Library for components; MSW for API mocks; integration tests use the design-system mount helpers per `react-turbo-conventions`.
-   - **MOBILE**: Jest + `@testing-library/react-native` for unit/integration; mocks for `expo-secure-store`, `expo-router`, Firebase, Sentry per `expo-mobile-conventions`.
-   - **MOBILE E2E (Maestro)**: in addition to the Jest suite, write end-to-end flows in `mobile/.maestro/*.yaml` (`launchApp`/`tapOn`/`assertVisible`) covering the Story's user journey — at least the happy path + one key error/empty path. Prefer stable `id:` selectors. Load the `maestro-e2e` skill. The Jest unit/integration suite and its 85% coverage threshold still apply — Maestro is additive, not a substitute.
-3. **Achieve the coverage target on new/modified code only**:
-   - **SERVICE ≥ 80%** (unit + integration combined)
-   - **WEB ≥ 70%** unit coverage
-   - **MOBILE ≥ 85%** unit coverage
-   Plus: every integration test hits at least the happy path and one key error path. Do NOT write tests for pre-existing uncovered code that this story did not change.
-4. **Run tests** — all must pass:
-   - **SERVICE**: `dotnet test <solution> --collect:"XPlat Code Coverage"`
-   - **WEB**: `yarn turbo test --filter=...<affected-app>` (Vitest with `--coverage`)
-   - **MOBILE**: `yarn test:coverage:check` (Jest, enforces the 85% threshold)
-   - **MOBILE E2E**: `maestro test mobile/.maestro/` — all flows green (requires a running simulator/emulator). If no device/simulator is available in the environment, commit the flows but note in your status block that they were not executed here.
+2. **Write tests** using each Surface's framework — the pack's `test_frameworks` field names it and its `conventions_skill` details the patterns. Examples: `dotnet` → xUnit + FluentAssertions + Moq, integration via `WebApplicationFactory` + Testcontainers + Refit (real DB, no repository-layer mocks); `go` → `testing` + testify, integration via testcontainers-go + `net/http/httptest` (real DB); `react-turbo` → Vitest + React Testing Library + MSW; `expo` → Jest (`jest-expo`) + `@testing-library/react-native`. For any pack that defines `commands.e2e` (e.g. `expo` → Maestro), also write the E2E flows it covers (`mobile/.maestro/*.yaml`: `launchApp`/`tapOn`/`assertVisible`) for the Story's journey — happy path + one key error/empty path, stable `id:` selectors; load `maestro-e2e`. E2E is additive — the unit/integration suite and its coverage threshold still apply.
+3. **Achieve the pack's `coverage_threshold` on new/modified code only** — read it from `packs/<stack>/pack.json` (e.g. `dotnet` 80, `go` 80, `react-turbo` 70, `expo` 85). Plus: every integration test hits at least the happy path and one key error path. Do NOT write tests for pre-existing uncovered code that this story did not change.
+4. **Run tests** — all must pass. Use each surface's pack `commands.test` (and `commands.e2e` where defined). Examples: `dotnet` → `dotnet test <solution> --collect:"XPlat Code Coverage"`; `go` → `go test ./... -race -coverprofile=coverage.out`; `react-turbo` → `yarn turbo test --filter=...<affected-app>` (Vitest `--coverage`); `expo` → `yarn test:coverage:check`, then E2E `maestro test mobile/.maestro/` (requires a running simulator/emulator — if none, commit the flows but note in your status block they were not executed here).
 5. **WEB/MOBILE**: run lint + typecheck before committing — both zero errors.
 6. **Commit test code only** using Conventional Commits with the `test` type:
    ```
@@ -41,6 +25,7 @@ You **can**: read/write/edit files, run build and test commands. You **cannot**:
    ```
    - Multi-surface test commits get a comma scope: `test(service,mobile): cover disease detection flow`.
    - **No issue ID in commit line.**
+   - **No AI/Claude attribution** in the commit, code, or comments — no `Co-Authored-By: Claude/Anthropic`, no `noreply@anthropic.com` co-author, no `Generated with Claude Code` / 🤖 line. Hard rule — `attribution-guard` blocks it.
    - **Do not update the tracker** — the orchestrator owns it.
    - **Do not write to `ai/`** — reviewer's Phase 0 pre-check rejects it.
 7. Hand off to the per-task reviewer for Phase 6 review. If changes are requested, address them and resubmit. After approval, notify that all test tasks are complete — orchestrator advances to Phase 7 (holistic pre-PR review).

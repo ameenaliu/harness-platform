@@ -4,20 +4,20 @@
     "name": "Aliu Ameen"
   },
   "metadata": {
-    "description": "GitHub-native Claude Code + Codex harness suite, shareable across projects. Ships two plugins: platform-sdlc-harness (idea-to-PR pipeline driven by GitHub Issues + Projects) and platform-product-video-harness (Remotion + ElevenLabs product-video generation + localisation for social media, per-project brand kit).",
-    "version": "1.0.0"
+    "description": "GitHub-native Claude Code + Codex harness suite, shareable across projects. Ships two plugins: platform-sdlc-harness (idea-to-PR pipeline driven by GitHub Issues + Projects; stack-agnostic via pluggable packs — .NET + Go service, React web, Expo mobile) and platform-product-video-harness (Remotion + ElevenLabs product-video generation + localisation for social media, per-project brand kit).",
+    "version": "1.1.0"
   },
   "plugins": [
     {
       "name": "platform-sdlc-harness",
       "source": "./plugins/platform-sdlc-harness",
-      "description": "AI-driven SDLC pipeline on GitHub — Issues + sub-issues + Projects (v2) across a service/web/mobile monorepo. Four workflows: discovery (idea → Epic/Feature/Story/Task tree with hierarchical numbering 'E1' / 'F1.1' / 'S1.1.1' + Markdown bodies + sub-issue links + Blocked-by/Blocks deps), backlog (refine a Story with dependency management), dev (10-phase build with 3 gates + 3 holistic reviews + Phase 8 architecture/rules reconciliation, two-tier branching, gh PRs), pr-review (post-PR comments via gh). 4 agents, 7 hooks (4 data-policy + 3 stack quality-check), 19 skills. Uses the gh CLI (no MCP server). Works with Claude Code and OpenAI Codex.",
-      "version": "1.0.0",
+      "description": "AI-driven SDLC pipeline on GitHub — Issues + sub-issues + Projects (v2) across a service/web/mobile monorepo. Stack-agnostic via pluggable packs (packs/registry.json — SERVICE: .NET 8 + Go; WEB: React 19 + Turbo; MOBILE: Expo; add Java/Rust/Angular/Svelte/Vue/Flutter without editing agents). Four workflows: discovery (idea → Epic/Feature/Story/Task tree with hierarchical numbering 'E1' / 'F1.1' / 'S1.1.1' + Markdown bodies + sub-issue links + Blocked-by/Blocks deps), backlog (refine a Story with dependency management), dev (10-phase build with 3 gates + 3 holistic reviews + Phase 8 architecture/rules reconciliation, two-tier branching, gh PRs), pr-review (post-PR comments via gh). 4 agents, 8 hooks (5 data-policy incl. attribution-guard + 3 stack quality-check), 32 skills. Uses the gh CLI (no MCP server). Works with Claude Code and OpenAI Codex.",
+      "version": "1.4.0",
       "author": {
         "name": "Aliu Ameen"
       },
       "license": "MIT",
-      "keywords": ["github", "sdlc", "workflow", "issues", "projects", "gh-cli", "dotnet", "react", "expo", "agents", "hooks", "data-policy"]
+      "keywords": ["github", "sdlc", "workflow", "issues", "projects", "gh-cli", "dotnet", "go", "react", "expo", "agents", "hooks", "data-policy", "stack-agnostic", "packs"]
     },
     {
       "name": "platform-product-video-harness",

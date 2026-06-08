@@ -69,10 +69,6 @@ Blocks: none | #<m> (<human-id> <title>)
 ## Notes / links
 
 <design-doc references, dependencies, open questions, parent-Feature context>
-
----
-
-🤖 Generated with [Claude Code](https://claude.ai/claude-code)
 ```
 
 ## Section Guidelines

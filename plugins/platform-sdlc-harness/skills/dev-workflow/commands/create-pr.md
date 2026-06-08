@@ -54,10 +54,8 @@ On `APPROVED`:
    Part of #<task1>
    Part of #<task2>
    …
-
-   🤖 Generated with [Claude Code](https://claude.ai/claude-code)
    ```
-   Write this to a temp file (e.g. `ai/tasks/.pr-body-<story>.md`, uncommitted).
+   Write this to a temp file (e.g. `ai/tasks/.pr-body-<story>.md`, uncommitted). **Never add an AI/Claude attribution line** (no `🤖 Generated with Claude Code`, no `Co-Authored-By: Claude/Anthropic`) to the PR body — hard rule, blocked by `attribution-guard`.
 
 3. **Create the PR** via `gh pr create`:
    ```bash
@@ -96,8 +94,6 @@ On `APPROVED`:
    Tasks completed: <count> (#<id>, #<id>, …)
    Tests written: <count> for surfaces <list>
    Phase 4 findings: X/Y/Z. Phase 7 findings: A/B/C.
-
-   🤖 Generated with [Claude Code](https://claude.ai/claude-code)
    EOF
    ```
 

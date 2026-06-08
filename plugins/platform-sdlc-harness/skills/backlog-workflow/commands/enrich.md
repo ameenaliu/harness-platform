@@ -157,8 +157,6 @@ Follow `templates/technical-notes.md`. Structure (Markdown — GitHub renders it
 - `.claude/rules/backend/testing.md`
 - `.claude/rules/mobile/code-style.md`
 - `.claude/rules/mobile/testing.md`
-
-🤖 Generated with [Claude Code](https://claude.ai/claude-code)
 ```
 
 ### Step 6 — Present and Confirm
@@ -186,8 +184,6 @@ Write the full report to a temp file and post with `gh issue comment <n> --body-
 ## Technical notes posted via `/backlog-enrich` at <UTC timestamp>
 
 <full report — same Markdown as the body update>
-
-🤖 Generated with [Claude Code](https://claude.ai/claude-code)
 ```
 
 Report back: updated issue URL + comment URL.

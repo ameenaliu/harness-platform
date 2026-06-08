@@ -14,15 +14,15 @@ You do **not** write production code or tests — that's the Developer and Teste
 
 ## Surface identification
 
-The repo is a single monorepo. Detect the surface(s) per task by mapping the task to a directory:
+The repo is a single monorepo. Detect the surface(s) per task by mapping the task's files to a surface directory, then resolve that surface's chosen **stack** (and its conventions) from the registry — never hardcode the stack:
 
-| Path pattern in the monorepo | Surface tag | Conventions skill |
+| Surface dir (`packs/registry.json` → `surfaces`) | Surface tag | Stack + conventions |
 |---|---|---|
-| `service/**` (`.csproj`, `.sln`) | **SERVICE** | `dotnet-conventions` |
-| `web/**` (Turbo `package.json` + `turbo.json`) | **WEB** | `react-turbo-conventions` |
-| `mobile/**` (Expo `app.json` or `app.config.ts`) | **MOBILE** | `expo-mobile-conventions` |
+| `service/**` | **SERVICE** | chosen stack from `.claude/context/platform-context.md` → `packs/<stack>/pack.json` → `conventions_skill` (e.g. `dotnet`→`dotnet-conventions`, `go`→`go-conventions`) |
+| `web/**` | **WEB** | `packs/<stack>/pack.json` → `conventions_skill` (e.g. `react-turbo`→`react-turbo-conventions`) |
+| `mobile/**` | **MOBILE** | `packs/<stack>/pack.json` → `conventions_skill` (e.g. `expo`→`expo-mobile-conventions`) |
 
-Tag every task row with one or more **Surface** tags (`SERVICE` / `WEB` / `MOBILE`) so the orchestrator + developer load the right conventions. Multi-surface tasks (e.g. `[service][web]`) are normal.
+The surface→directory map and the stacks each surface supports live in `packs/registry.json`; each pack's `detect` globs disambiguate when a directory could host more than one stack. Tag every task row with one or more **Surface** tags (`SERVICE` / `WEB` / `MOBILE`) so the orchestrator + developer resolve the right pack. Multi-surface tasks (e.g. `[service][web]`) are normal.
 
 **Task title format**: every task title MUST start with `[<surface>]` bracket-prefix(es) matching the Surface tag(s), e.g. `[service] Add /api/v2/farms/{id}/inventory endpoint`, `[mobile][service] Fix inventory dropdown after storage delete`.
 

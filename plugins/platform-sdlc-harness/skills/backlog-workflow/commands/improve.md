@@ -166,8 +166,6 @@ Write to a temp file and post with `gh issue comment <n> --body-file <file>`:
 
 ## Improved content (for audit trail)
 <full Title / body / AC of the new version, in Markdown for human readability>
-
-🤖 Generated with [Claude Code](https://claude.ai/claude-code)
 ```
 
 #### Write 3 — Optional Status bump (only if Status was `Backlog`/`No Status` and human confirmed YES — all three)

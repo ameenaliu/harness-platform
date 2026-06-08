@@ -50,7 +50,7 @@ All GitHub writes are **best-effort** — warn clearly on failure and continue.
    - If parent is an Epic → propose new Features (each with their own Stories). Allocate Feature IDs starting at `max(existing <f>) + 1`. **Never re-use a gap** — gaps from deleted items are intentional, like JIRA issue keys.
    - If parent is a Feature → propose new Stories only. Allocate Story IDs starting at `max(existing <s>) + 1`.
    - Use the full prefix on every new item title (`F<e>.<f>: <title>` or `S<e>.<f>.<s>: [<surface>] <title>`).
-   - Compose the rich per-item bodies per `skills/github-rendering/SKILL.md` (§Feature structure or §Story structure, in full), ending with the attribution footer.
+   - Compose the rich per-item bodies per `skills/github-rendering/SKILL.md` (§Feature structure or §Story structure, in full), with **no AI/Claude attribution footer** (hard rule).
    - If new items depend on existing siblings (or existing siblings would now depend on the new items), capture those dependencies — same `blocked by <slug-or-#>` convention as decompose Step 5.
    - Render as a Markdown tree under the existing parent. Show existing siblings (read-only context) + new items (proposed, with their new IDs).
 

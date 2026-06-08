@@ -101,12 +101,13 @@ For each tool below, run the **check** command. If it fails or is too old, follo
 |---|---|---|---|---|---|
 | git | `git --version` | any 2.x | `Git.Git` | `git` | `git` |
 | **GitHub CLI** | `gh --version` | ≥ 2.40 | `GitHub.cli` | `gh` | `gh` (see cli.github.com/manual/installation) |
-| .NET SDK | `dotnet --version` | ≥ 8.0 (only if a surface uses SERVICE/.NET) | `Microsoft.DotNet.SDK.8` | `dotnet` | `dotnet-sdk-8.0` |
+| .NET SDK | `dotnet --version` | ≥ 8.0 (only if a SERVICE surface chose the `dotnet` stack) | `Microsoft.DotNet.SDK.8` | `dotnet` | `dotnet-sdk-8.0` |
+| Go | `go version` | ≥ 1.23 (only if a SERVICE surface chose the `go` stack) | `GoLang.Go` | `go` | `golang-go` (or go.dev/dl) |
 | Node.js | `node --version` | ≥ 20 (some Web/Mobile packages require 22) | `OpenJS.NodeJS.LTS` | `node` | use nvm (`nvm install 22 && nvm use 22`) |
 | Yarn | `yarn --version` | ≥ 4.3 (only if a surface uses Yarn) | `corepack enable && corepack prepare yarn@4.3.1 --activate` | same | same |
 | Docker | `docker --version` | any (only required if user runs SERVICE locally) | `Docker.DockerDesktop` | `docker` (Docker Desktop) | `docker.io` + `docker compose` plugin |
 
-> Stack tools (.NET / Node / Yarn / Docker) are only **required** for surfaces the repo actually adopts. Repos may be empty scaffolds with all stacks `TBD` — in that case verify only `git` + `gh` and record the rest as TBD (see Step 4).
+> Stack tools (.NET / Go / Node / Yarn / Docker) are only **required** for surfaces the repo actually adopts, and only for the stack each surface chose (e.g. install Go only when a SERVICE surface picked the `go` stack; .NET only when it picked `dotnet`). Repos may be empty scaffolds with all stacks `TBD` — in that case verify only `git` + `gh` and record the rest as TBD (see Step 4). Each pack's required tools are listed in its `packs/<stack>/pack.json` `tool_permissions`.
 
 #### MOBILE / WEB capability tools
 
@@ -129,7 +130,10 @@ For any present surface with a chosen stack, verify the advisory quality/securit
 | **Semgrep** | all (C#/TS/RN) | `semgrep --version` | `pipx install semgrep` (or `python3 -m pip install semgrep`; macOS `brew install semgrep`) | SAST — `security-scan` |
 | **Gitleaks** | all | `gitleaks version` | `brew install gitleaks` (macOS); Linux/Windows: release binary or `go install github.com/gitleaks/gitleaks/v8@latest` | secrets — `security-scan` |
 | **OSV-Scanner** | all (NuGet+npm) | `osv-scanner --version` | `brew install osv-scanner`; else release binary or `go install github.com/google/osv-scanner/cmd/osv-scanner@latest` | dependency CVEs — `security-scan` |
-| **Roslynator** | SERVICE | `roslynator --version` | `dotnet tool install -g roslynator.dotnet.cli` | .NET maintainability — `dotnet-code-quality` |
+| **Roslynator** | SERVICE (dotnet) | `roslynator --version` | `dotnet tool install -g roslynator.dotnet.cli` | .NET maintainability — `dotnet-code-quality` |
+| **golangci-lint** | SERVICE (go) | `golangci-lint version` | `brew install golangci-lint` (macOS); else `go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest` | Go lint aggregator — `go-code-quality` |
+| **gofumpt** | SERVICE (go) | `gofumpt -version` | `go install mvdan.cc/gofumpt@latest` | Go formatting — `go-code-quality` |
+| **govulncheck** | SERVICE (go) | `govulncheck -version` | `go install golang.org/x/vuln/cmd/govulncheck@latest` | Go module CVEs — `security-scan` |
 | **Knip** | WEB, MOBILE | `npx knip --version` | runs via `npx` (pre-warm `npx -y knip --help`) | unused code/deps — `dead-code-analysis` |
 | **madge** | WEB, MOBILE | `npx madge --version` | runs via `npx` (pre-warm `npx -y madge --version`) | circular deps — `dead-code-analysis` |
 | **expo-doctor** | MOBILE | `npx expo-doctor --help` | runs via `npx` | Expo health — `expo-doctor` |
@@ -187,12 +191,11 @@ For the path:
 1. Verify it exists and is a git repo (`git -C <path> rev-parse --is-inside-work-tree`).
 2. Identify the **default branch** locally (`git -C <path> symbolic-ref refs/remotes/origin/HEAD`) and via GitHub (`gh repo view --json defaultBranchRef -q .defaultBranchRef.name`). Expected: `develop`. If not `develop`, ask the user to confirm — the harness's two-tier model uses `develop` as the integration / default branch.
 3. Confirm the **production branch** exists: `main` (protected). Verify with `git -C <path> ls-remote --heads origin main` (or `gh api repos/<org>/<repo>/branches/main`). If only `master` exists, ask the user which name to record (`main` default; `master` allowed literally if they say so).
-4. Scan the repo for the **surfaces** that are present (each may be a stubbed scaffold or fully built):
-   - **SERVICE**: `service/` (e.g. `.csproj` files for a .NET stack — but any stack is allowed).
-   - **WEB**: `web/` (e.g. `turbo.json` / `package.json`).
-   - **MOBILE**: `mobile/` (e.g. `app.json` / `app.config.{js,ts}`).
-   - **CROSS-CUTTING**: shared tooling, `docs/`, `.github/`, CI — recorded as a logical surface, not a directory requirement.
-   Record which surfaces exist; an empty scaffold may have the directory but no stack chosen yet (→ stack `TBD`, see Step 4).
+4. Scan the repo for the **surfaces** present and **decide each surface's stack**, driven by `packs/registry.json` (`surfaces` → each entry's `dir` + the `stacks` it supports). For each surface directory that exists (`service/`, `web/`, `mobile/`) plus the logical **CROSS-CUTTING** surface (`docs/`, `.github/`, CI — not a directory requirement):
+   - **Detect** the stack by testing each supported stack's `detect` files/globs from its `packs/<stack>/pack.json` (e.g. SERVICE: `go.mod` → `go`; `*.csproj`/`global.json` → `dotnet`. WEB: `turbo.json` → `react-turbo`. MOBILE: `app.config.*`/`app.json` → `expo`).
+   - **If a stack is unambiguously detected**, record it and confirm with the user.
+   - **If the surface is an empty scaffold (no stack files) OR detection is ambiguous, ASK the user which stack to adopt** via `AskUserQuestion` — the options are exactly that surface's `stacks` list from the registry (e.g. SERVICE → `dotnet` / `go`; WEB → `react-turbo`; MOBILE → `expo`), plus a **"Decide later (TBD)"** option. **Never silently assume the registry `default`** — stack choice is the user's decision (the `default` is only a last-resort fallback if they defer and a later phase forces one). This is the stack-decision point the user owns.
+   - Record the chosen stack + its `conventions_skill` (from the pack) per surface; `TBD` only when the user explicitly defers.
 5. **Worktree**: `enabled` by default; set `disabled` if a surface's Husky `commit-msg` hook references `commitlint` in a way incompatible with worktrees (e.g. Yarn PnP `.pnp.cjs` cache). Keep this as a per-workspace toggle.
 6. Present extracted info to the user for confirmation.
 
@@ -202,11 +205,13 @@ For the path:
 
 For the `platform` repo, scan the codebase for **repo-specific** conventions NOT already covered by the canonical skills. Only scan surfaces that have a chosen stack (skip `TBD` surfaces).
 
-The canonical conventions ship as **defaults**, and apply to a surface once it adopts the matching stack:
+Each surface's conventions come from its **chosen stack's pack** (`packs/<stack>/pack.json` → `conventions_skill`). Supported packs today:
 
-- `dotnet-conventions` (default for **SERVICE** / .NET 8): C# naming, project structure (WebApi/Application/Domain/Infrastructure), EF Core, Wolverine/Hangfire patterns, xUnit + FluentAssertions + Moq + Testcontainers + WebApplicationFactory + Refit, OpenTelemetry/Seq logging, Conventional Commits.
-- `react-turbo-conventions` (default for **WEB** / React 19 + Turbo): React 19 + Yarn 4.3.1 + Turbo + Vite 7 monorepo layout (`apps/`, `packages/`), React Query 5 (TanStack Query) for server state + Redux Toolkit for UI state, a shared design-system package (banned-HTML rule), Vitest + RTL + MSW.
-- `expo-mobile-conventions` (default for **MOBILE** / Expo): Expo Router file-based routing in `app/`, Redux Toolkit + Persist (MMKV-backed), Firebase + Sentry initialisation, EAS secrets, `expo-secure-store`, Jest + `@testing-library/react-native`.
+- **SERVICE** → `dotnet-conventions` (`.NET 8`: C# naming, WebApi/Application/Domain/Infrastructure layering, EF Core, Wolverine/Hangfire, xUnit + FluentAssertions + Moq + Testcontainers + WebApplicationFactory + Refit, OTel/Seq) **or** `go-conventions` (`Go`: package layout, error wrapping with `%w`, context propagation, chi / pgx+sqlc / golang-migrate / asynq|river / OTel+slog / oapi-codegen, testing + testify + testcontainers-go).
+- **WEB** → `react-turbo-conventions` (React 19 + Yarn + Turbo + Vite, React Query 5 + Redux Toolkit, shared design-system banned-HTML rule, Vitest + RTL + MSW).
+- **MOBILE** → `expo-mobile-conventions` (Expo Router, Redux Toolkit + Persist (MMKV-backed), Firebase + Sentry, EAS secrets, `expo-secure-store`, Jest + `@testing-library/react-native`).
+
+(To support a new language/framework, add a pack per `packs/README.md` — this list reflects the registry, it is not a fixed set.)
 
 **Only extract** patterns specific to this repo that supplement the canonical conventions:
 - Custom message handlers / job routing
@@ -335,13 +340,13 @@ Generated by `/init-workspace`. Local-only, git-ignored.
 
 ## Surfaces & Stack
 
-> Conventions ship as defaults; the matching skill applies once a surface adopts that stack. Empty scaffolds record `TBD`.
+> Stacks are pluggable (see `packs/registry.json`); each surface's stack is **chosen at init (Step 2.4)** and its `conventions_skill` comes from the pack. Empty scaffolds record `TBD` until a stack is chosen.
 
-| Surface | Stack + versions | Conventions skill |
+| Surface | Stack (chosen via registry) | Conventions skill |
 |---|---|---|
-| SERVICE | <e.g. .NET 8 / TBD> | `dotnet-conventions` (or TBD) |
-| WEB | <e.g. React 19 + Turbo / TBD> | `react-turbo-conventions` (or TBD) |
-| MOBILE | <e.g. Expo 54 / TBD> | `expo-mobile-conventions` (or TBD) |
+| SERVICE | <`.NET 8` (dotnet) / `Go` (go) / TBD> | <`dotnet-conventions` / `go-conventions` / TBD> |
+| WEB | <`React 19 + Turbo` (react-turbo) / TBD> | <`react-turbo-conventions` / TBD> |
+| MOBILE | <`Expo` (expo) / TBD> | <`expo-mobile-conventions` / TBD> |
 | CROSS-CUTTING | <shared tooling / CI / docs> | — |
 
 ## Workspace
@@ -350,7 +355,7 @@ Generated by `/init-workspace`. Local-only, git-ignored.
 
 ## Repo-Specific Conventions
 
-> Supplements the canonical `dotnet-conventions` / `react-turbo-conventions` / `expo-mobile-conventions` skills. For standard rules, refer to the matching conventions skill. This section contains only patterns specific to this repo. Surfaces with a `TBD` stack have no conventions yet.
+> Supplements the canonical conventions skill for each surface's chosen stack (`dotnet-conventions` / `go-conventions` / `react-turbo-conventions` / `expo-mobile-conventions`, resolved via `packs/registry.json`). For standard rules, refer to the matching conventions skill. This section contains only patterns specific to this repo. Surfaces with a `TBD` stack have no conventions yet.
 
 ### <Category — e.g. "Message handlers", "Tenant scoping", "Payment integration">
 
@@ -362,7 +367,7 @@ Generated by `/init-workspace`. Local-only, git-ignored.
 
 **Skip if `.claude/settings.local.json` already exists, unless `--full`.**
 
-Write `.claude/settings.local.json`, pre-approving the `gh` read/list commands (and local dev tooling) that background agents run without prompting:
+Write `.claude/settings.local.json`, pre-approving the `gh` read/list commands (and local dev tooling) that background agents run without prompting. The stack-specific `Bash(...)` entries are the **union of `tool_permissions` from each chosen stack pack** (`packs/<stack>/pack.json`); the template below carries all supported stacks — keep the superset (harmless) or trim to the chosen stacks:
 
 ```json
 {
@@ -373,6 +378,7 @@ Write `.claude/settings.local.json`, pre-approving the `gh` read/list commands (
       "Bash(cat .claude/:*)",
       "Bash(dotnet build:*)", "Bash(dotnet restore:*)", "Bash(dotnet test:*)", "Bash(dotnet format:*)",
       "Bash(dotnet list:*)", "Bash(dotnet tool:*)", "Bash(dotnet ef:*)", "Bash(roslynator:*)",
+      "Bash(go:*)", "Bash(golangci-lint:*)", "Bash(gofumpt:*)", "Bash(staticcheck:*)", "Bash(govulncheck:*)", "Bash(migrate:*)", "Bash(sqlc:*)", "Bash(oapi-codegen:*)",
       "Bash(pnpm:*)", "Bash(yarn:*)", "Bash(npm:*)", "Bash(npx:*)", "Bash(node:*)",
       "Bash(eslint:*)", "Bash(prettier:*)",
       "Bash(eas:*)", "Bash(expo:*)",
@@ -419,30 +425,17 @@ Source templates live under the plugin at `${CLAUDE_PLUGIN_ROOT}/portable/`. Dep
 #### 7a — Always (Codex selected)
 
 1. **`AGENTS.md`** (repo root) ← `portable/AGENTS.md.tmpl` with placeholders filled.
-2. **Convention bodies** → copy into `.agents/skills/` (Codex reads these natively). Only copy the bodies for surfaces with a chosen stack; for `TBD` surfaces, skip (re-run via `--scaffold-tools` once a stack is adopted):
-   - `skills/dotnet-conventions/SKILL.md` → `.agents/skills/dotnet-conventions/SKILL.md`
-   - `skills/react-turbo-conventions/SKILL.md` → `.agents/skills/react-turbo-conventions/SKILL.md`
-   - `skills/expo-mobile-conventions/SKILL.md` → `.agents/skills/expo-mobile-conventions/SKILL.md`
-   - **Capability + quality/security skills** (copy the ones relevant to the present surfaces — these are the tool skills the roles reference):
-     - `skills/agent-device/SKILL.md` → `.agents/skills/agent-device/SKILL.md` (MOBILE)
-     - `skills/maestro-e2e/SKILL.md` → `.agents/skills/maestro-e2e/SKILL.md` (MOBILE)
-     - `skills/react-doctor/SKILL.md` → `.agents/skills/react-doctor/SKILL.md` (WEB + MOBILE)
-     - `skills/expo-doctor/SKILL.md` → `.agents/skills/expo-doctor/SKILL.md` (MOBILE)
-     - `skills/dead-code-analysis/SKILL.md` → `.agents/skills/dead-code-analysis/SKILL.md` (WEB + MOBILE)
-     - `skills/bundle-budget/SKILL.md` → `.agents/skills/bundle-budget/SKILL.md` (WEB + MOBILE)
-     - `skills/dotnet-code-quality/SKILL.md` → `.agents/skills/dotnet-code-quality/SKILL.md` (SERVICE)
-     - `skills/migration-safety/SKILL.md` → `.agents/skills/migration-safety/SKILL.md` (SERVICE)
-     - `skills/api-contract-check/SKILL.md` → `.agents/skills/api-contract-check/SKILL.md` (SERVICE)
-     - `skills/observability/SKILL.md` → `.agents/skills/observability/SKILL.md` (all surfaces)
-     - `skills/security-scan/SKILL.md` → `.agents/skills/security-scan/SKILL.md` (all surfaces)
-   - `agents/shared/engineering-principles.md` → `.agents/skills/engineering-principles/SKILL.md`, **prepending** SKILL.md frontmatter:
+2. **Convention + advisory skill bodies** → copy into `.agents/skills/` (Codex reads these natively), **driven by the chosen stack packs**. For each surface with a chosen stack (skip `TBD` surfaces — re-run via `--scaffold-tools` once a stack is adopted), read `packs/<stack>/pack.json` and copy:
+   - its `conventions_skill` body: `skills/<name>/SKILL.md` → `.agents/skills/<name>/SKILL.md` (e.g. `dotnet`→`dotnet-conventions`, `go`→`go-conventions`, `react-turbo`→`react-turbo-conventions`, `expo`→`expo-mobile-conventions`);
+   - each entry in its `advisory_skills` body: `skills/<name>/SKILL.md` → `.agents/skills/<name>/SKILL.md`. These resolve per stack — e.g. `dotnet` → `dotnet-code-quality`, `migration-safety`, `api-contract-check`, `security-scan`, `observability`; `go` → `go-code-quality`, `api-contract-check`, `security-scan`, `observability`; `react-turbo`/`expo` → `react-doctor`, `dead-code-analysis`, `bundle-budget`, `security-scan`, `observability`; `expo` also → `expo-doctor`, `agent-device`, `maestro-e2e`. **Deduplicate** skills shared across surfaces (copy once).
+   - `agents/shared/engineering-principles.md` → `.agents/skills/engineering-principles/SKILL.md` (all surfaces), **prepending** SKILL.md frontmatter:
      ```
      ---
      name: engineering-principles
      description: Universal engineering principles (SOLID / DRY / YAGNI) applied to all code in all languages. Read when writing or reviewing any code.
      ---
      ```
-   Copy bodies verbatim — they are already valid SKILL.md skills.
+   Copy bodies verbatim — they are already valid SKILL.md skills. Because the copy set is the **union of each chosen pack's `conventions_skill` + `advisory_skills`**, adding a new stack pack automatically scaffolds its skills here with no edit to this step.
 
 #### 7b — Codex agents and workflow skills
 

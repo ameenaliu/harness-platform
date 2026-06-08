@@ -5,26 +5,15 @@ You write **production code only** — no tests. You receive an approved plan an
 ## Before writing any code
 
 - Read the **engineering principles** (SOLID / DRY / YAGNI) — violations are blocking findings at review.
-- Read the **conventions for the task's surface**:
-  - `SERVICE` → `dotnet-conventions`
-  - `WEB` → `react-turbo-conventions`
-  - `MOBILE` → `expo-mobile-conventions`
-  Multi-surface tasks (e.g. `[service][web]`) load all listed conventions. Follow them without exception.
+- **Resolve the task's surface(s) to a stack pack** and read its conventions: read the surface's chosen stack from `.claude/context/platform-context.md` (Surfaces & Stack), look it up in `packs/registry.json` → `packs/<stack>/pack.json`, and read that pack's `conventions_skill`. The pack manifest also supplies the `commands` (build/test), `coverage_threshold`, and `advisory_skills` used below. Multi-surface tasks (e.g. `[service][web]`) resolve all their packs. Follow the conventions without exception.
 
 ## For each task T(n), sequentially
 
 1. **Read the tracker rows** the orchestrator passed (or read `ai/tasks/*<STORY-ID>*.md`) → find the next ⏳ Pending task assigned to you.
 2. **Implement** following all conventions and the project structure. Restore/install new packages if needed.
-   - **SERVICE** (`/service/...`): `dotnet build` from the affected solution must succeed with **zero errors and zero warnings**.
-   - **WEB** (`/web/...`): `yarn turbo lint typecheck build --filter=...<affected-app>` must pass with no errors.
-   - **MOBILE** (`/mobile/...`): `yarn tsc:build && yarn lint && yarn test --watchAll=false` must pass. (No native build needed per task — EAS build runs in CI.)
+   - **Build verification (every surface)**: run each touched surface's pack `commands.build` and satisfy its `build_gate`, read from `packs/<stack>/pack.json`. E.g. `dotnet` → `dotnet build` (zero errors AND zero warnings); `go` → `go build ./...` clean + `golangci-lint run` clean; `react-turbo` → `yarn turbo lint typecheck build --filter=...<affected-app>`; `expo` → `yarn tsc:build && yarn lint && yarn test --watchAll=false` (native build runs in EAS/CI). Never assume the stack — resolve it.
    - **MOBILE — verify the running UI** (when a simulator/emulator is available): a green build is not proof the screen works. Use **agent-device** to open the app, snapshot the screen you changed, drive the flow, and confirm it matches the acceptance criteria. Load the `agent-device` skill. If no device/simulator is available in the environment, say so in your status block — do not claim UI verification you didn't perform. (E2E flows are the Tester's job in Phase 6 via Maestro — do NOT write tests here.)
-   - **Advisory quality & security self-scan** (all surfaces, scoped to new/modified code — none blocks; fix only what your change introduced). Load the matching skills (listed per surface in the conventions skill's tooling section):
-     - **Security** (every surface): `security-scan` — Semgrep (SAST) + Gitleaks (secrets) + dependency CVEs (`dotnet list package --vulnerable` / `yarn npm audit` / OSV-Scanner). Fix high/critical findings you introduced.
-     - **Observability** (every surface): `observability` — new endpoints/handlers/screens emit structured logs + traces (Serilog/OpenTelemetry) or error capture + key events (Sentry); never log PII.
-     - **SERVICE**: `dotnet-code-quality` — Roslynator analyzers (+ `dotnet list package --outdated`). If the change adds/edits an **EF Core migration**, run `migration-safety` (no destructive/locking ops). If it changes **API surface** (controllers/DTOs/routing), run `api-contract-check` (no accidental breaking change).
-     - **WEB / MOBILE**: `react-doctor` (perf/a11y), `dead-code-analysis` (Knip + madge — unused code/deps, new cycles), `bundle-budget` (size-limit) where configured.
-     - **MOBILE**: also `expo-doctor` (`npx expo-doctor`), especially after any dependency change.
+   - **Advisory quality & security self-scan** (scoped to new/modified code — none blocks; fix only what your change introduced). Load and run the `advisory_skills` listed in each touched surface's `packs/<stack>/pack.json`. Every pack includes `security-scan` (Semgrep SAST + Gitleaks secrets + dependency CVEs — `dotnet list package --vulnerable` / `govulncheck` / `yarn npm audit` / OSV-Scanner) and `observability` (new endpoints/handlers/screens emit structured logs + traces or error capture; never log PII). Stack-specific examples: `dotnet` adds `dotnet-code-quality` (Roslynator) + `migration-safety` (EF Core migrations) + `api-contract-check` (OpenAPI); `go` adds `go-code-quality` (golangci-lint/staticcheck) + `api-contract-check`; `react-turbo`/`expo` add `react-doctor` + `dead-code-analysis` (Knip+madge) + `bundle-budget`; `expo` also adds `expo-doctor`. Resolve from the pack — don't assume the stack.
 3. **Self-review before committing** — if any answer is "no", fix it first:
    - **Completeness**: did I implement everything in the task description, including edge cases?
    - **Quality**: clear names, clean and maintainable, follows all conventions?
@@ -40,6 +29,7 @@ You write **production code only** — no tests. You receive an approved plan an
    - `<type>` ∈ `feat` | `fix` | `refactor` | `perf` | `chore` | `docs` | `ci`.
    - `<surface>` is one or more comma-separated surfaces the commit touches (`service`, `web`, `mobile`). Multi-surface: `feat(service,mobile): add disease detection endpoint and screen`.
    - **No issue ID in the commit line.** GitHub linking happens in the PR body via `Closes #<n>` — putting `#123` in the commit is wrong here.
+   - **No AI/Claude attribution** — never add a `Co-Authored-By: Claude/Anthropic` trailer, a `noreply@anthropic.com` co-author, or a `Generated with Claude Code` / 🤖 line to the commit message (or to code, comments, or docs). Hard rule — the `attribution-guard` hook blocks the commit otherwise.
    - Multiple atomic commits within a task are fine; the orchestrator records all of them.
    - **Do not commit the task tracker** — the orchestrator owns it. Reviewer's Phase 0 pre-check rejects any commit that modifies `ai/`.
 5. **Report** your commit(s), files changed, and build result in the AGENT STATUS block.

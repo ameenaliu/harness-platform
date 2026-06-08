@@ -7,12 +7,8 @@
 ## Mechanics — Claude Code
 
 ### Common to all roles
-- **Paths are plugin-root-relative** — read `skills/<surface>-conventions/SKILL.md`, `agents/shared/engineering-principles.md`, and `portable/roles/<name>.md` directly.
-- **Conventions loading** — as your first action, read the conventions skill(s) for each `Surface` the orchestrator passed:
-  - `SERVICE` → `dotnet-conventions`
-  - `WEB` → `react-turbo-conventions`
-  - `MOBILE` → `expo-mobile-conventions`
-  Multi-surface tasks load multiple skills.
+- **Paths are plugin-root-relative** — read each surface's pack `conventions_skill` at `skills/<conventions_skill>/SKILL.md` (resolved via `packs/registry.json`), `agents/shared/engineering-principles.md`, and `portable/roles/<name>.md` directly.
+- **Conventions loading** — as your first action, resolve each `Surface` the orchestrator passed to its **stack pack**: read the surface's stack from `.claude/context/platform-context.md`, look it up in `packs/registry.json` → `packs/<stack>/pack.json`, and read that pack's `conventions_skill` (e.g. `dotnet`→`dotnet-conventions`, `go`→`go-conventions`, `react-turbo`→`react-turbo-conventions`, `expo`→`expo-mobile-conventions`). Multi-surface tasks resolve multiple packs.
 - **Pre-flight** — before any work, read ALL tracker files in `ai/tasks/` matching the current Story issue number to learn what's done, prior reviewer feedback, and where to resume.
 - **Status block** — end every response with the `📋 AGENT STATUS` block from your role body; the orchestrator parses it (a Stop hook backstops a missing block).
 
