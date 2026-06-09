@@ -9,7 +9,7 @@ None — this is the entry point.
 
 ## Steps
 
-1. **Capture the idea**. If the user passed an idea as argument (`/discovery-workflow "ship farm-health alerts"`), record it. Otherwise prompt:
+1. **Capture the idea**. If the user passed an idea as argument (`/discovery-workflow "ship usage alerts"`), record it. Otherwise prompt:
    > "Describe the idea you want to shape. One paragraph is fine; include the *why* if you can."
 2. **Slugify** the idea title to derive `<slug>` (kebab-case, ≤ 40 chars). Check `ai/discoveries/<slug>.md` — if it exists, ask whether to resume (load existing state) or fork (append a numeric suffix).
 3. **Create the tracker stub** at `ai/discoveries/<slug>.md` with:

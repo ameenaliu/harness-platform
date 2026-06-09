@@ -50,7 +50,7 @@ const insetX = isSquare ? 60 : (isPortrait ? 30 : 150);
 
 ```tsx
 <BrandIntro
-  headline="Inventory just got smarter."
+  headline="Your product, beautifully shown."
   overlay="dark"                    // 'dark' | 'light' | 'none' (background gradient)
 />
 ```
@@ -82,7 +82,7 @@ Renders an annotation pointing at a specific UI element. Animates in synchronous
 ```tsx
 <LowerThird
   name="Bola Adeyemi"
-  role="Smallholder farmer · Lagos"
+  role="Small business owner · Lagos"
 />
 ```
 

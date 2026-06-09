@@ -5,14 +5,14 @@
   },
   "metadata": {
     "description": "GitHub-native Claude Code + Codex harness suite, shareable across projects. Ships two plugins: platform-sdlc-harness (idea-to-PR pipeline driven by GitHub Issues + Projects; stack-agnostic via pluggable packs — .NET + Go service, React web, Expo mobile) and platform-product-video-harness (Remotion + ElevenLabs product-video generation + localisation for social media, per-project brand kit).",
-    "version": "1.1.0"
+    "version": "1.1.1"
   },
   "plugins": [
     {
       "name": "platform-sdlc-harness",
       "source": "./plugins/platform-sdlc-harness",
       "description": "AI-driven SDLC pipeline on GitHub — Issues + sub-issues + Projects (v2) across a service/web/mobile monorepo. Stack-agnostic via pluggable packs (packs/registry.json — SERVICE: .NET 8 + Go; WEB: React 19 + Turbo; MOBILE: Expo; add Java/Rust/Angular/Svelte/Vue/Flutter without editing agents). Four workflows: discovery (idea → Epic/Feature/Story/Task tree with hierarchical numbering 'E1' / 'F1.1' / 'S1.1.1' + Markdown bodies + sub-issue links + Blocked-by/Blocks deps), backlog (refine a Story with dependency management), dev (10-phase build with 3 gates + 3 holistic reviews + Phase 8 architecture/rules reconciliation, single-branch model off develop with native issue auto-close, gh PRs), pr-review (post-PR comments via gh). 4 agents, 8 hooks (5 data-policy incl. attribution-guard + 3 stack quality-check), 32 skills. Uses the gh CLI (no MCP server). Works with Claude Code and OpenAI Codex.",
-      "version": "1.5.0",
+      "version": "1.5.1",
       "author": {
         "name": "Aliu Ameen"
       },
@@ -23,7 +23,7 @@
       "name": "platform-product-video-harness",
       "source": "./plugins/platform-product-video-harness",
       "description": "AI-driven product-video generation + multilingual localisation for social media, with a per-project brand kit. Four user-invocable skills: init-video-workspace, generate, translate (provider-routed TTS: ElevenLabs for en + 31 langs; 9jaLingo for yo/ha/ig/pcm; captions-only fallback otherwise), update-brand-kit. The generate workflow runs 5 internal phases (analyze → script → build → narrate → review) + optional Phase 0 brief drafting + 3 human gates + V8/V9 vision-based animation & callout checks inline before GATE #2. 5 agents, 4 hooks (secrets + media-size + render-quality + PII guards), 18 skills. Works with Claude Code and OpenAI Codex.",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "author": {
         "name": "Aliu Ameen"
       },

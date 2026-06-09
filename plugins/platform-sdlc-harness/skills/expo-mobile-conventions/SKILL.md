@@ -1,10 +1,10 @@
 ---
 name: expo-mobile-conventions
 description: >
-  Pointer to the the project MOBILE stack rules + architecture. Loaded by Developer,
+  Pointer to the project MOBILE stack rules + architecture. Loaded by Developer,
   Reviewer, and Tester agents when a task is tagged MOBILE. The canonical rules
-  live in the this repo under `.claude/rules/mobile/` and
-  `.claude/architecture/farm-management/mobile.md` — this skill tells the agent
+  live in this repo under `.claude/rules/mobile/` and
+  `.claude/architecture/<area>/mobile.md` — this skill tells the agent
   where to read them so they evolve with the codebase, not with the harness.
 disable-model-invocation: true
 user-invocable: true
@@ -12,22 +12,22 @@ user-invocable: true
 
 # MOBILE / Expo Conventions — Pointer
 
-**This skill is a thin pointer.** The canonical the project MOBILE rules + architecture live in the this repo and evolve with the code. Read them directly:
+**This skill is a thin pointer.** The canonical MOBILE rules + architecture live in this repo and evolve with the code. Read them directly:
 
 ## Mandatory reads (every MOBILE task)
 
-1. **`.claude/rules/mobile/code-style.md`** — Components (`FC<Props>`, `interface Props`, `StyleSheet.create()`), Compound Components, Screen Containers (`FeatureHomeScreenContainer`, `FeatureDetailScreenContainer`, `ModalScreenContainer`, etc. from `components/layout/`), Expo Router navigation (use `AppRoutes` constant), imports order, TypeScript DTO hierarchy, **state management (Redux Toolkit + Persist with 6 persistence layers: `persistedSecured` (SecureStore), `persistedFarm` (MMKV), `persistedFeature` (MMKV, cleared on farm switch), `persistedGlobal` (MMKV), `userLocalPersisted` (MMKV), `nonPersisted` (in-memory))**, data fetching hooks (`useFetchGroupedData`, `useFetchDetailData`, `useFetchEditData`, `useMutateData`), services, DI (`ServiceProvider`), styling (`StyleSheet.create()` + `ColorTheme`/`ColorConstants`/`SpacingConstants`/`FontsConstants` — NEVER hardcoded hex), forms (React Hook Form + Yup), lists (`CustomFlashList` — Shopify FlashList wrapper, NOT `FlatList`), error handling (services throw → hooks toast), storage (MMKV `SecureStorage`/`DefaultStorage` + Expo SecureStore for refresh token; access tokens in-memory only), push notifications (background = `setBackgroundMessageHandler` → MMKV; foreground = `PushNotificationProvider` → toast).
+1. **`.claude/rules/mobile/code-style.md`** — Components (`FC<Props>`, `interface Props`, `StyleSheet.create()`), Compound Components, Screen Containers (`FeatureHomeScreenContainer`, `FeatureDetailScreenContainer`, `ModalScreenContainer`, etc. from `components/layout/`), Expo Router navigation (use `AppRoutes` constant), imports order, TypeScript DTO hierarchy, **state management (Redux Toolkit + Persist — follow the repo's `.claude/rules/mobile/code-style.md` for the exact state/persistence layers; e.g. `persistedSecured` (SecureStore), `persistedGlobal` (MMKV), `nonPersisted` (in-memory))**, data fetching hooks (`useFetchGroupedData`, `useFetchDetailData`, `useFetchEditData`, `useMutateData`), services, DI (`ServiceProvider`), styling (`StyleSheet.create()` + `ColorTheme`/`ColorConstants`/`SpacingConstants`/`FontsConstants` — NEVER hardcoded hex), forms (React Hook Form + Yup), lists (`CustomFlashList` — Shopify FlashList wrapper, NOT `FlatList`), error handling (services throw → hooks toast), storage (MMKV `SecureStorage`/`DefaultStorage` + Expo SecureStore for refresh token; access tokens in-memory only), push notifications via **`expo-notifications` OR Firebase Cloud Messaging (FCM) — both valid** (background handler → MMKV; foreground = `PushNotificationProvider` → toast). Firebase is fine for push/analytics, but it is NOT the app backend — the service surface is.
 2. **`.claude/rules/mobile/testing.md`** — Jest 29 via jest-expo + `@testing-library/react-native` + `@testing-library/jest-native` + `userEvent`. **Coverage threshold: 85% minimum** (branches, functions, lines, statements). Tests in `__tests__/` mirroring `src/`. Centralised native module mocking in `jest/setup.ts`.
-3. **`.claude/architecture/farm-management/mobile.md`** — Mobile-app-specific architecture.
+3. **`.claude/architecture/<area>/mobile.md`** — Mobile-app-specific architecture.
 4. **`agents/shared/engineering-principles.md`** (in this plugin) — SOLID / DRY / YAGNI.
 
 ## Harness-process rules (encoded here because they cross-cut the workflow, not the codebase)
 
 ### Stack identification
 
-the project mobile lives at `/Mobile/farm-management/`. **React Native 0.79+, Expo 53, React 19, TypeScript** (per `.claude/CLAUDE.md → Key Dependencies`). Yarn 4.3.1 (corepack).
+The mobile app lives under `mobile/`. **React Native 0.79+, Expo 53, React 19, TypeScript** (per `.claude/CLAUDE.md → Key Dependencies`). Yarn 4.3.1 (corepack).
 
-When the task title carries `[MOBILE]`, agents work under `/Mobile/farm-management/`.
+When the task title carries `[MOBILE]`, agents work under `mobile/`.
 
 ### Commits — Conventional Commits with stack scope
 
@@ -37,7 +37,7 @@ When the task title carries `[MOBILE]`, agents work under `/Mobile/farm-manageme
 
 Multi-stack: `<type>(mobile,service): …`. See `dotnet-conventions/SKILL.md → Commits` for the full rule set; it applies identically here.
 
-### Branching — the project two-tier model
+### Branching — the project branching model
 
 Same model as SERVICE. See `dotnet-conventions/SKILL.md → Branching`.
 
@@ -45,7 +45,7 @@ Same model as SERVICE. See `dotnet-conventions/SKILL.md → Branching`.
 
 - **MOBILE**: ≥ **85%** branches, functions, lines, statements on new/modified code (Jest coverage threshold per `.claude/rules/mobile/testing.md`).
 
-> Note: this is HIGHER than the harness-default 70% — the project enforces 85% on mobile via Jest config. The Reviewer and Tester must respect the repo-set threshold, not a harness default.
+> Note: this is HIGHER than the harness-default 70% — when the repo enforces 85% on mobile via Jest config. The Reviewer and Tester must respect the repo-set threshold, not a harness default.
 
 ### Things the reviewer auto-blocks (Phase 0 + hook backstops)
 
@@ -77,7 +77,7 @@ Part of the MOBILE capability. `/init-workspace` installs them if missing; all a
 > Reviewer Phase B reference (anchor `MOBILE (Expo)` in `packs/expo/pack.json`).
 
 - File-based routing in `app/` (Expo Router); state via Redux Toolkit + Persist (per `.claude/rules/mobile/code-style.md`).
-- Firebase / Sentry initialised in the right entry point; no secret in the JS bundle (use `expo-secure-store` / EAS secrets).
+- Push notifications via `expo-notifications` OR Firebase Cloud Messaging (FCM) — both valid; Firebase is fine for push/analytics but is NOT the app backend (the service surface is). Sentry initialised in the right entry point; no secret in the JS bundle (use `expo-secure-store` / EAS secrets).
 - Permissions guarded; offline state handled; deep links registered in `app.config.ts`.
 - React Doctor + Knip/madge + expo-doctor surface no new high-severity finding.
 - New screens/flows capture errors via Sentry with no PII in telemetry (`observability`); no secrets in source (`security-scan`).

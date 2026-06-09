@@ -8,7 +8,7 @@
 #   Scans user prompts for PII / credential / customer-data shapes before they
 #   reach the model. Hard-blocks and logs to .claude/logs/policy-violations.log.
 #   Cannot be silenced by prompt-injection because it runs before the model
-#   sees the input. Catches: large UUID clusters (farmer/transaction batches),
+#   sees the input. Catches: large UUID clusters (user/transaction batches),
 #   email clusters, IBAN/PAN patterns, Bearer JWT tokens, .env payload shapes,
 #   Nigerian BVN/NIN, Nigerian phone clusters (+234), Paystack secret shapes.
 # ---
@@ -57,10 +57,10 @@ if not prompt:
 
 # Patterns to detect (returns the first match's reason)
 checks = [
-    # 10+ UUIDs in a single prompt — looks like a farmer/transaction batch
+    # 10+ UUIDs in a single prompt — looks like a user/transaction batch
     (
         len(re.findall(r"\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\b", prompt)) >= 10,
-        "10+ UUIDs detected — looks like a farmer or transaction batch",
+        "10+ UUIDs detected — looks like a user or transaction batch",
     ),
     # 5+ distinct email addresses
     (
@@ -140,7 +140,7 @@ case "$VERDICT" in
         echo "$TS pii-pattern-guard blocked: $REASON" >> "$LOG_DIR/policy-violations.log"
 
         echo "BLOCKED by pii-pattern-guard: $REASON." >&2
-        echo "Remove the sensitive content from your prompt and rephrase. Reference data structurally (\"a farmer record\") rather than pasting values." >&2
+        echo "Remove the sensitive content from your prompt and rephrase. Reference data structurally (\"a record\") rather than pasting values." >&2
         exit 2
         ;;
     *)

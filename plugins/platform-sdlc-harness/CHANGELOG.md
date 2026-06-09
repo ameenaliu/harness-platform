@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.5.1 — De-genericize: remove origin-project (FarmManagement / Farmilik / Azure-DevOps) coupling
+
+Audited **all 238 repo files** and stripped project-specific coupling so the harness is genuinely project-neutral. 41 files changed; tests 29/29 green. Audit record: `audit/coupling-audit-2026-06-09.md`.
+
+- **Conventions skills** (`dotnet`/`react-turbo`/`expo`): fixed `the the project` / `the this repo` grammar; genericized architecture paths to `.claude/architecture/<area>/<surface>.md` (dropped `farm-management` / `marketplace` / `web-apps` / "Farm Globe"); `/Mobile/farm-management/` → `mobile/`, `/Web/` → `web/`; deferred the farm-specific mobile persistence layers to the repo's `.claude/rules/mobile/code-style.md`; made the .NET architecture (CQRS/MediatR, Outbox, AutoMapper, Wolverine/Hangfire, Refit) **conditional/example** rather than mandated.
+- **Azure-DevOps leftovers**: `dotnet-conventions` "Work Items panel" → GitHub `Closes #<issue>`, "Backlog Item" → "Story", "no work item ID" → "no issue ID". `scripts/check-conflicts.sh` + `install-and-test.sh`: ADO Pipelines var `SYSTEM_PULLREQUEST_TARGETBRANCH` → GitHub Actions `GITHUB_BASE_REF`.
+- **Domain examples** swapped to a neutral SaaS domain across discovery / backlog / dev-workflow / maestro / agent-device / pr-review / portable roles: disease-detection → order-processing, `farms/{id}/inventory` → `accounts/{id}/orders`, `Farm.cs`/acreage → `Order.cs`/total, "Kano Demo Farm" → "Acme Demo Account", "farm member" → "team member", "farm-health alerts" → "usage alerts".
+- **Mobile push**: framed as `expo-notifications` **or** Firebase Cloud Messaging (FCM) — both valid; clarified Firebase is for push/analytics, **not** the app backend (the service surface is).
+- **Kept** (security): BVN / NIN / Paystack / SendGrid detection patterns in the data-policy hooks — only the "farmer" prose framing was neutralized.
+
 ## 1.5.0 — Single-branch model + native issue auto-close
 
 The dev-workflow's git/branch/PR model is simplified to a **single integration branch**, and issue closure + board completion are now **fully automatic** on merge.

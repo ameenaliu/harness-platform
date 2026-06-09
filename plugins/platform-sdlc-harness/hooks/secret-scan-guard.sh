@@ -6,7 +6,7 @@
 # scope: global (plugin-level)
 # blocking: true
 # description: >
-#   Scans the content being written/edited for the project provider secret-key shapes
+#   Scans the content being written/edited for provider secret-key shapes
 #   (Paystack, SendGrid, Firebase, Sentry, OpenAI, Azure storage / SAS, generic JWT,
 #   credential assignment with a literal value). Complements sensitive-file-guard
 #   (which checks filename only). Logs to .claude/logs/policy-violations.log.
@@ -56,10 +56,10 @@ if not content:
     print("ALLOW")
     sys.exit(0)
 
-# the project provider patterns + generic high-confidence secret shapes.
+# Provider patterns + generic high-confidence secret shapes.
 # Pattern, label.
 patterns = [
-    # Paystack — primary payment provider (70+ hits in the monorepo code)
+    # Paystack — a payment provider
     (r"\bsk_(?:live|test)_[A-Za-z0-9]{24,}\b",                  "Paystack secret key (sk_live_/sk_test_)"),
     (r"\bpk_(?:live|test)_[A-Za-z0-9]{24,}\b",                  "Paystack public key (pk_live_/pk_test_)"),
     # SendGrid

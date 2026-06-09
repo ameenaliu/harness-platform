@@ -97,15 +97,15 @@ The Reviewer performs a **two-phase review** in every mode (per-task or holistic
 
 **Spec comments** `[S<n>]` — Phase A failures (implementation doesn't match plan):
 ```
-[S1] service/Domain/Farm.cs:missing | Plan requires acreage validation → No validation found
+[S1] service/Domain/Order.cs:missing | Plan requires total validation → No validation found
 ```
 
 **Quality comments** `[R<n>]` — Phase B issues (code quality, conventions):
 ```
 [R1] CRITICAL | service/WebApi/AuthController.cs:45 | Missing null check
   → Suggested fix: Add if (result is null) return Problem(...)
-[R2] WARNING | mobile/app/(tabs)/inventory.tsx:92 | useEffect missing dependency
-  → Suggested fix: Add inventoryId to dependency array
+[R2] WARNING | mobile/app/(tabs)/orders.tsx:92 | useEffect missing dependency
+  → Suggested fix: Add orderId to dependency array
 ```
 
 Severities for `[R<n>]`: `CRITICAL` (must fix), `WARNING` (should fix), `SUGGESTION` (consider).

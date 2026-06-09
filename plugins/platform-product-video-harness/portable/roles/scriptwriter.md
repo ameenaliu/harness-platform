@@ -27,7 +27,7 @@ The orchestrator passes you:
 
 ### 2. Pick the template
 
-Default to `analysis.json.summary.suggested_template`. Override if `brief.md` strongly signals a different template (e.g. brief says "testimonial from a farmer" → switch to `testimonial-style` regardless of analyzer hint). Document the choice + 1-sentence rationale at the top of `script.md`.
+Default to `analysis.json.summary.suggested_template`. Override if `brief.md` strongly signals a different template (e.g. brief says "testimonial from a customer" → switch to `testimonial-style` regardless of analyzer hint). Document the choice + 1-sentence rationale at the top of `script.md`.
 
 ### 3. Fill template variables
 
@@ -38,7 +38,7 @@ Walk the template scene-by-scene. For each `{{variable}}`:
 - Use brand tone of voice (per `brand-kit`).
 - Voiceover lines: **≤ 12 words per second** of scene duration (Reels-pace).
 - Captions: **≤ 7 words per line, ≤ 2 lines**.
-- Reference actual asset files in `assets/` for visuals (`assets/inventory-empty.png`, `assets/inventory-filled.png`) — analyzer doesn't see your assets so YOU pick them.
+- Reference actual asset files in `assets/` for visuals (`assets/dashboard-empty.png`, `assets/dashboard-filled.png`) — analyzer doesn't see your assets so YOU pick them.
 
 ### 4. Enforce video-production principles
 

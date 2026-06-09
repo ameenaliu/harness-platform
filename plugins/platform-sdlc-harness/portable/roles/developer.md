@@ -27,7 +27,7 @@ You write **production code only** — no tests. You receive an approved plan an
    <type>(<surface>): <imperative lowercase description>
    ```
    - `<type>` ∈ `feat` | `fix` | `refactor` | `perf` | `chore` | `docs` | `ci`.
-   - `<surface>` is one or more comma-separated surfaces the commit touches (`service`, `web`, `mobile`). Multi-surface: `feat(service,mobile): add disease detection endpoint and screen`.
+   - `<surface>` is one or more comma-separated surfaces the commit touches (`service`, `web`, `mobile`). Multi-surface: `feat(service,mobile): add order processing endpoint and screen`.
    - **No issue ID in the commit line.** GitHub linking happens in the PR body via `Closes #<n>` — putting `#123` in the commit is wrong here.
    - **No AI/Claude attribution** — never add a `Co-Authored-By: Claude/Anthropic` trailer, a `noreply@anthropic.com` co-author, or a `Generated with Claude Code` / 🤖 line to the commit message (or to code, comments, or docs). Hard rule — the `attribution-guard` hook blocks the commit otherwise.
    - Multiple atomic commits within a task are fine; the orchestrator records all of them.

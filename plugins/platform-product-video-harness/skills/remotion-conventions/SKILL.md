@@ -33,14 +33,14 @@ import { FeatureCallout } from './_components/FeatureCallout';
 import { CaptionStrip } from './_components/CaptionStrip';
 import { EndCard } from './_components/EndCard';
 
-export const InventoryLaunch: React.FC = () => {
+export const ProductLaunch: React.FC = () => {
   return (
     <AbsoluteFill style={{ backgroundColor: brand.colors.ink }}>
       <SafeArea>
         {/* Scene 1 — Hook (frames 0-90 = 0-3s at 30fps) */}
         <Sequence from={0} durationInFrames={90}>
-          <BrandIntro headline="Inventory just got smarter." />
-          <CaptionStrip text="Inventory just got smarter" />
+          <BrandIntro headline="Your product, beautifully shown." />
+          <CaptionStrip text="Your product, beautifully shown" />
         </Sequence>
 
         {/* Scene 2 — Problem ... */}
@@ -79,29 +79,29 @@ The compositor registers **three** `<Composition>`s per video in `Root.tsx`, all
 ```tsx
 // compositions/Root.tsx
 import { Composition } from 'remotion';
-import { InventoryLaunch } from './inventory-launch';
+import { ProductLaunch } from './product-launch';
 
 export const RemotionRoot: React.FC = () => (
   <>
     <Composition
-      id="inventory-launch-9-16"
-      component={InventoryLaunch}
+      id="product-launch-9-16"
+      component={ProductLaunch}
       durationInFrames={900}    // total scene frames; here 30s @ 30fps
       fps={30}
       width={1080}
       height={1920}
     />
     <Composition
-      id="inventory-launch-1-1"
-      component={InventoryLaunch}
+      id="product-launch-1-1"
+      component={ProductLaunch}
       durationInFrames={900}
       fps={30}
       width={1080}
       height={1080}
     />
     <Composition
-      id="inventory-launch-16-9"
-      component={InventoryLaunch}
+      id="product-launch-16-9"
+      component={ProductLaunch}
       durationInFrames={900}
       fps={30}
       width={1920}
@@ -127,7 +127,7 @@ Then in the composition:
 ```tsx
 import { staticFile, Img } from 'remotion';
 
-<Img src={staticFile('inventory-launch/empty-state.png')} />
+<Img src={staticFile('product-launch/empty-state.png')} />
 ```
 
 `public/` is **gitignored** — it's a render-time artefact.
@@ -137,7 +137,7 @@ import { staticFile, Img } from 'remotion';
 | Thing | Pattern |
 |---|---|
 | Per-video composition file | `compositions/<kebab-slug>.tsx` (matches the project folder slug) |
-| Composition `id` | `<slug>-<aspect>` (e.g. `inventory-launch-9-16`) |
+| Composition `id` | `<slug>-<aspect>` (e.g. `product-launch-9-16`) |
 | Reusable component | `compositions/_components/<PascalCase>.tsx` (export named, not default) |
 | Component prop interfaces | `<ComponentName>Props` (e.g. `BrandIntroProps`) |
 

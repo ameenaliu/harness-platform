@@ -1,10 +1,10 @@
 ---
 name: dotnet-conventions
 description: >
-  Pointer to the the project SERVICE stack rules + architecture. Loaded by Developer,
+  Pointer to the project SERVICE stack rules + architecture. Loaded by Developer,
   Reviewer, and Tester agents when a task is tagged SERVICE. The canonical rules
-  live in the this repo under `.claude/rules/backend/` and
-  `.claude/architecture/{farm-management,marketplace}/service.md` — this skill
+  live in this repo under `.claude/rules/backend/` and
+  `.claude/architecture/<area>/service.md` — this skill
   tells the agent where to read them so they evolve with the codebase, not with
   the harness.
 disable-model-invocation: true
@@ -13,20 +13,18 @@ user-invocable: true
 
 # SERVICE / .NET Conventions — Pointer
 
-**This skill is a thin pointer.** The canonical the project SERVICE rules + architecture live in the this repo and evolve with the code. Read them directly:
+**This skill is a thin pointer.** The canonical SERVICE rules + architecture live in this repo and evolve with the code. Read them directly:
 
 ## Mandatory reads (every SERVICE task)
 
-1. **`.claude/rules/backend/code-style.md`** — naming, file/code organisation, Service Complexity Spectrum (Lean/Medium/Full), layering rules, async/CancellationToken, controllers, MediatR CQRS, services, caching (Redis), repositories, entities, DTOs, AutoMapper, workers (Wolverine + Hangfire), DI registration, error handling, code style.
-2. **`.claude/rules/backend/testing.md`** — xUnit + FluentAssertions + Moq + Testcontainers + WebApplicationFactory + Refit. `BaseTests` + `[Collection]` pattern. Outbox notification testing.
-3. **`.claude/architecture/<area>/service.md`** where `<area>` matches the affected service area:
-   - `.claude/architecture/farm-management/service.md` — the monorepo, Identity, Notification, Platform service area
-   - `.claude/architecture/marketplace/service.md` — Marketplace service area
+1. **`.claude/rules/backend/code-style.md`** — naming, file/code organisation, Service Complexity Spectrum (Lean/Medium/Full), layering rules, async/CancellationToken, controllers, services, caching, repositories, entities, DTOs, DI registration, error handling, code style. Where the repo's rules call for them: CQRS command/query + handlers (e.g. MediatR), a mapping profile (e.g. AutoMapper), and background workers (e.g. Wolverine + Hangfire) — apply only when the service actually uses those patterns.
+2. **`.claude/rules/backend/testing.md`** — xUnit + FluentAssertions + Moq + Testcontainers + WebApplicationFactory; typed HTTP clients (e.g. Refit) where used. `BaseTests` + `[Collection]` pattern. Outbox / transactional-messaging testing if the service uses it.
+3. **`.claude/architecture/<area>/service.md`** where `<area>` matches the affected service area — refer to the service areas / apps defined in the repo's architecture docs.
 4. **`agents/shared/engineering-principles.md`** (in this plugin) — SOLID / DRY / YAGNI.
 
 ## Harness-process rules (encoded here because they cross-cut the workflow, not the codebase)
 
-### Commits — Conventional Commits with stack scope, no work item ID
+### Commits — Conventional Commits with stack scope, no issue ID
 
 ```
 <type>(<stack>): <imperative lowercase description>
@@ -34,7 +32,7 @@ user-invocable: true
 
 - `<type>` ∈ `feat | fix | chore | refactor | perf | docs | ci | test`.
 - `<stack>` ∈ `service` (for SERVICE commits), `web`, `mobile`, comma-separated for multi-stack.
-- **NO `#<work-item-id>` in commit lines.** the project links Work Items via the PR's Work Items panel.
+- **NO `#<issue-id>` in commit lines.** GitHub links issues via the PR body `Closes #<issue>`.
 - Enforced by Reviewer Phase 0 regex `^(feat|fix|chore|refactor|perf|docs|ci|test)\(([a-z]+([a-z]+)*)\):\s+[a-z].*$`.
 
 ### Branching — single-branch model
@@ -74,7 +72,7 @@ user-invocable: true
 > Reviewer Phase B reference (anchor `SERVICE (.NET)` in `packs/dotnet/pack.json`).
 
 - Layered structure respected (WebApi → Application → Domain → Infrastructure); domain has zero infra deps; no business logic in controllers; minimal APIs documented.
-- Wolverine/Hangfire handlers idempotent; outbox writes inside the same transaction as state changes.
+- Background/message handlers idempotent (e.g. Wolverine/Hangfire, where the service uses them); outbox / transactional-messaging writes inside the same transaction as state changes, if the service uses that pattern.
 - Integration tests use a real DB (no mocks for the repository layer).
 - Roslynator surfaces no new maintainability finding from the diff (`dotnet-code-quality`); any EF Core migration is non-destructive/non-locking (`migration-safety`); no accidental breaking OpenAPI change (`api-contract-check`).
 - New endpoints/handlers instrumented (Serilog/OpenTelemetry, no PII) (`observability`); no secrets in source (`security-scan`).

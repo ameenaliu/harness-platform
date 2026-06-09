@@ -16,7 +16,7 @@
 - **Voiceover** (≤ 35 chars):
   > "Meet {{feature_name}}."
   >
-  > _Example: "Meet Inventory."_
+  > _Example: "Meet your product."_
 - **Caption**:
   > "Meet {{feature_name}}"
 
@@ -27,7 +27,7 @@
 - **Voiceover** (≤ 60 chars):
   > "For every {{persona_label}}, {{context_pain}}."
   >
-  > _Example: "For every smallholder farmer, tracking what's on the farm is a daily headache."_
+  > _Example: "For every small business owner, tracking what's in your business is a daily headache."_
 - **Caption**: `"{{persona_label}}: {{context_pain_short}}"`
 
 ### Scene 3 — DEMO BEAT 1 (8.0s → 16.0s, 8.0s)
@@ -47,7 +47,7 @@
 - **Voiceover** (≤ 95 chars):
   > "{{demo_2_voiceover}}"
   >
-  > _Example: "Live totals update across every device on your farm — no manual sync needed."_
+  > _Example: "Live totals update across every device in your business — no manual sync needed."_
 - **Caption**: `"{{demo_2_caption}}"`
 
 ### Scene 5 — CTA (24.0s → 30.0s, 6.0s)

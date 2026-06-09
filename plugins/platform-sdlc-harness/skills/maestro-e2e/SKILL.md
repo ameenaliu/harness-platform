@@ -28,7 +28,7 @@ devices.
 ## When to use it
 
 - **Phase 6, MOBILE surface**: add E2E flows that exercise the user journey the
-  Story delivers (e.g. log in → select farm → record an inventory movement →
+  Story delivers (e.g. log in → select an account → record a transaction →
   assert the new balance is visible).
 - To cover cross-screen navigation, deep links, permission prompts, and
   offline/empty/error states that unit tests can't reach.
@@ -48,24 +48,24 @@ devices.
 ## Flow layout & conventions
 
 - Flows live under **`mobile/.maestro/`** (one `.yaml` per journey), named after
-  the journey: `mobile/.maestro/record-inventory-movement.yaml`.
+  the journey: `mobile/.maestro/record-transaction.yaml`.
 - Each flow declares the `appId` and a sequence of commands:
 
 ```yaml
-# mobile/.maestro/record-inventory-movement.yaml
+# mobile/.maestro/record-transaction.yaml
 appId: com.yourorg.app           # from app.config.ts (ios.bundleIdentifier / android.package)
 ---
 - launchApp
 - tapOn: "Sign in"
-- inputText: "demo@farm.test"
+- inputText: "demo@example.test"
 - tapOn: "Continue"
-- assertVisible: "Select a farm"
-- tapOn: "Kano Demo Farm"
+- assertVisible: "Select an account"
+- tapOn: "Acme Demo Account"
 - tapOn:
-    id: "fab-add-movement"       # prefer testID/accessibility id over visible text where stable
+    id: "fab-add-transaction"    # prefer testID/accessibility id over visible text where stable
 - inputText: "25"
 - tapOn: "Save"
-- assertVisible: "Balance: 125 bags"
+- assertVisible: "Balance: 125"
 ```
 
 - Prefer stable **`id:` selectors** (testID / accessibility id already required by
@@ -82,7 +82,7 @@ appId: com.yourorg.app           # from app.config.ts (ios.bundleIdentifier / an
 ```bash
 maestro --version                                   # verify install
 maestro test mobile/.maestro/                        # run all flows
-maestro test mobile/.maestro/record-inventory-movement.yaml   # run one
+maestro test mobile/.maestro/record-transaction.yaml   # run one
 maestro studio                                       # interactive flow authoring / element inspector
 ```
 

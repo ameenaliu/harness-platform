@@ -20,7 +20,7 @@
    ```
    Best-effort — if the repo is brand-new and returns nothing, fall back to the canonical structures in `skills/github-rendering/SKILL.md`.
 3. **Propose the tree**. Apply these rules:
-   - **One Epic per cohesive capability surface.** Multiple Epics ONLY when the idea genuinely spans separate user journeys / business capabilities (e.g., "Disease detection workflow" + "Disease detection partner billing" = two Epics; "Disease detection v1 features" = one Epic with several Features).
+   - **One Epic per cohesive capability surface.** Multiple Epics ONLY when the idea genuinely spans separate user journeys / business capabilities (e.g., "Order processing workflow" + "Order processing partner billing" = two Epics; "Order processing v1 features" = one Epic with several Features).
    - **Feature granularity**: one Feature per discrete user-facing or system-facing slice that can be released independently. Aim for 2-5 Features per Epic.
    - **Story granularity**: one Story per outcome a developer can complete in 1-5 days. Aim for 2-6 Stories per Feature.
    - **Hierarchical numbering prefix is mandatory** on every title — `E<e>` for Epic, `F<e>.<f>` for Feature, `S<e>.<f>.<s>` for Story (1-based). Per `skills/github-rendering/SKILL.md` § Title numbering scheme. The full Story title format is `S<e>.<f>.<s>: [<Surface>] <title>`.

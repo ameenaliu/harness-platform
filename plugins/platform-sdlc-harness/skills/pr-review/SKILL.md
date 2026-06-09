@@ -243,11 +243,11 @@ Checked against the loaded conventions + `.claude/context/platform-context.md`.
 - [ ] Domain has zero infrastructure dependencies
 - [ ] No business logic in controllers / minimal APIs
 - [ ] Constructor injection only
-- [ ] Wolverine handlers idempotent; outbox writes inside the same transaction as state changes
+- [ ] [If the service uses CQRS] message/command handlers idempotent; [if it uses an outbox / transactional messaging] outbox writes inside the same transaction as state changes — defer to `.claude/rules/backend`
 - [ ] EF Core: Fluent API only; dedicated `IEntityTypeConfiguration<T>`; descriptive migration names
 - [ ] Naming: PascalCase types, `_camelCase` private fields, `Async` suffix, `I` prefix on interfaces
 - [ ] Structured logging via `ILogger<T>` / OpenTelemetry / Seq — no string interpolation in log messages
-- [ ] xUnit + FluentAssertions + Moq + Testcontainers + WebApplicationFactory + Refit; integration tests use real DB (no repository-layer mocks)
+- [ ] xUnit + FluentAssertions + Moq + Testcontainers + WebApplicationFactory; typed HTTP clients (e.g. Refit) where used; integration tests use real DB (no repository-layer mocks)
 - [ ] Coverage ≥ 80% on new/modified SERVICE code
 
 ### WEB-Specific (when Surface includes WEB — React 19 + Turbo)
@@ -263,10 +263,10 @@ Checked against the loaded conventions + `.claude/context/platform-context.md`.
 ### MOBILE-Specific (when Surface includes MOBILE — Expo)
 
 - [ ] File-based routing in `app/` (Expo Router)
-- [ ] State via **Redux Toolkit + Persist** with the right persistence layer (`persistedSecured` / `persistedFarm` / `persistedFeature` / `persistedGlobal` / `userLocalPersisted` / `nonPersisted` — per `.claude/rules/mobile/code-style.md`)
-- [ ] `CustomFlashList` (Shopify FlashList wrapper) — NOT `FlatList`
+- [ ] State via **Redux Toolkit + Persist** with the right persistence layer (e.g. `persistedSecured` / `nonPersisted`) — follow the repo's `.claude/rules/mobile/code-style.md` for the state/persistence layers
+- [ ] Long lists use the performant list component the repo mandates (e.g. a Shopify FlashList wrapper) rather than `FlatList`, per `.claude/rules/mobile/code-style.md`
 - [ ] Styling via `StyleSheet.create()` + `ColorTheme` / `SpacingConstants` / `FontsConstants` — NO hardcoded hex
-- [ ] Firebase + Sentry initialised in the right entry point
+- [ ] Sentry (and Firebase for push notifications, where used) initialised in the right entry point — Firebase is fine as a push-notification provider, not as an application backend
 - [ ] No secret in JS bundle (use `expo-secure-store` for refresh token only; EAS secrets for build-time)
 - [ ] Permissions guarded; offline state handled
 - [ ] Deep links registered in `app.config.ts`

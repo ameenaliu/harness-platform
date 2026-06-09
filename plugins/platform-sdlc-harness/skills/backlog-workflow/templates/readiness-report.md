@@ -52,7 +52,7 @@ This is the output format for `/backlog-analyze`. It provides a qualitative asse
 **Story / body**: <if redraft, show proposed>
 
 **Acceptance criteria additions / rewrites**:
-- (redraft of AC#2) Given a logged-in user with an active subscription, When they submit a payment via the payment-provider webhook, Then the transaction is persisted via the service Outbox and a push confirmation is sent within 5 seconds.
+- (redraft of AC#2) Given a logged-in user with an active subscription, When they submit a payment via the payment-provider webhook, Then the transaction is persisted (via the service's transactional-messaging path if it uses one) and a push confirmation is sent within 5 seconds.
 - (new AC) Given an invalid provider signature on the webhook, When the request reaches the service, Then a 401 is returned with code `PROVIDER_INVALID_SIGNATURE` and no DB write occurs.
 
 ### Open questions for the PO

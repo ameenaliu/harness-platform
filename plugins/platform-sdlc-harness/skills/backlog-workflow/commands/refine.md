@@ -80,7 +80,7 @@ Walk each section in order. **Propose content → ask for approval → iterate �
 
 **Section 7 — Acceptance criteria**:
 - Draft Given/When/Then AC (`- [ ]` checklist) based on session notes, existing AC, and `.claude/architecture/` understanding.
-- Reference real components / integrations where applicable — e.g. *"Given a user pays via the payment provider, When the webhook fires, Then the service Outbox persists the transaction within the same DB transaction AND a push notification fires within 5s"*.
+- Reference real components / integrations where applicable — e.g. *"Given a user pays via the payment provider, When the webhook fires, Then the transaction is persisted within the same DB transaction (via the service's transactional-messaging path if it uses one) AND a push notification fires within 5s"*.
 - Happy path first; then error / edge cases; then NFR-style AC where relevant (performance, accessibility, offline behaviour).
 - Present all AC together: *"Are these complete? Any scenarios missing?"* Iterate. User can add/remove/modify.
 

@@ -65,7 +65,7 @@ agent-device apps                 # list installable / running apps & targets
 agent-device open <app>           # start a session against an app on a sim/emulator/device
 agent-device snapshot             # compact accessibility tree (refs like @e3) — read the UI
 agent-device tap @e3              # interact with a visible element by ref or selector
-agent-device fill @e7 "kano farm" # type into a field
+agent-device fill @e7 "acme account" # type into a field
 agent-device screenshot out.png   # capture visual evidence
 agent-device close                # end the session
 ```
@@ -88,7 +88,7 @@ Typical Developer loop for a mobile task:
   still apply.
 - **Evidence, not noise** — keep screenshots/logs in a scratch dir; do not commit
   them. Reference key findings in your `📋 AGENT STATUS` block (e.g. "verified the
-  disease-detection screen renders results + empty state via agent-device").
+  order-processing screen renders results + empty state via agent-device").
 - **Don't fake a pass** — if a simulator/emulator isn't available in the
   environment, say so in your status block rather than claiming UI verification
   you didn't perform.

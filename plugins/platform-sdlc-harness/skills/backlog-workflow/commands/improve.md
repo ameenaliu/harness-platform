@@ -58,7 +58,7 @@ Adapt to tier:
 > "This Story is in good shape — `[mobile][service]` surface present, parent Feature #45 linked, 5 testable ACs. I'll draft a clean version in the template format."
 
 **Tier 2:** Ask 2-5 targeted questions. Each question: references the specific gap, suggests an answer where possible, answerable in 1-2 sentences. Example:
-> "AC #3 says 'transactions are saved' — not testable. Should it be: 'Given a logged-in user with an active subscription, When they submit a payment via the payment-provider webhook, Then the transaction is persisted via the service Outbox and a push confirmation is sent'? Or did the team have a different acceptance shape in mind?"
+> "AC #3 says 'transactions are saved' — not testable. Should it be: 'Given a logged-in user with an active subscription, When they submit a payment via the payment-provider webhook, Then the transaction is persisted (via the service's transactional-messaging path if it uses one) and a push confirmation is sent'? Or did the team have a different acceptance shape in mind?"
 
 Present all questions at once via `AskUserQuestion` (max 5).
 
@@ -96,7 +96,7 @@ Using Step 4 answers (or existing content for Tier 1), draft the ENTIRE Story at
 ```
 ### What was improved
 - Added 3 missing error-case ACs (webhook idempotency, notification failure, batch sync conflict)
-- Clarified persona from "user" to "farm member"
+- Clarified persona from "user" to "team member"
 - Added explicit out-of-scope: deferred B2B partner notifications
 - Added `[mobile][service]` surface (title segment + `surface:mobile` + `surface:service` labels)
 - Linked to parent Feature #45 "Batch sync v2"
@@ -114,7 +114,7 @@ Present the complete draft:
 The user may approve, request section changes, add/remove/modify ACs, or adjust scope. Iterate until satisfied. After minor edits, confirm the change briefly without re-presenting the entire item.
 
 If during review you notice the item is too large (>7 ACs, multiple capabilities), gently suggest splitting:
-> "This Story has 9 ACs spanning two distinct capabilities ('disease detection capture' + 'disease detection notification'). Cleaner as two sibling Stories under Feature #X? Run `/discovery-workflow extend <feature-#>` to add the sibling and split the ACs between them."
+> "This Story has 9 ACs spanning two distinct capabilities ('order processing capture' + 'order processing notification'). Cleaner as two sibling Stories under Feature #X? Run `/discovery-workflow extend <feature-#>` to add the sibling and split the ACs between them."
 
 ### Step 7 — Persist to GitHub
 
@@ -181,7 +181,7 @@ Report back the URL of the updated issue + the comment URL(s).
 - **Adapt the write set.** Some Stories are sensitive — let the human downgrade to COMMENT ONLY without losing the change-log audit.
 - **Adapt, don't interrogate.** If the Story is good, say so and draft fast. Don't ask unnecessary questions.
 - **Suggest answers.** When asking, propose an answer the user can confirm or correct. The user validates; never asks them to draft from scratch.
-- **Mirror the repo's vocabulary.** If the user calls something "farm member" don't rename to "tenant user". Use real service / integration names from `.claude/architecture/`.
+- **Mirror the repo's vocabulary.** If the user calls something "team member" don't rename to "tenant user". Use real service / integration names from `.claude/architecture/`.
 - **Session notes are gold.** If provided, mine thoroughly before asking questions the notes might already answer.
 - **Don't invent requirements or architecture.** If something seems missing, flag as a question (`[PO]` / `[Tech]`) not an assertion.
 - **One drafting pass per invocation.** No multiple-comment artifact spreads. The change-log comment + the issue edit history is the audit trail.

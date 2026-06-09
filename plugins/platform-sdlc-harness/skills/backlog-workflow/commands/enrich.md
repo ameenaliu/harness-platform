@@ -67,19 +67,19 @@ For each affected surface:
 
    **SERVICE** (`.NET` — see `skills/dotnet-conventions/`):
    - Affected microservice(s) and which layer(s) per the repo's service-complexity model (e.g. WebApi, WebApiCore, Core, EFData, DataContract, Model, Worker, ClientSDK).
-   - MediatR CQRS additions needed: new Commands / Queries / Handlers / Validators (full services only).
+   - [Command/Query + Handler — if the service uses CQRS (e.g. MediatR)]: new Commands / Queries / Handlers / Validators (full services only).
    - Services + interfaces to add/modify (`{Entity}Service` / `I{Entity}Service`).
    - Repository changes (`{Entity}Repository`).
-   - Entity / DTO / AutoMapper Profile changes.
+   - Entity / DTO / [mapping profile — if the service uses a mapper (e.g. AutoMapper)] changes.
    - EF Core: DbContext changes, new entity configurations, migrations needed.
-   - Event handlers (`Worker/Handlers/`) — must be idempotent.
+   - Event handlers (`Worker/Handlers/`) — must be idempotent (if the service uses a message/worker layer).
    - Background jobs (`Worker/Jobs/`).
-   - Outbox writes: identify transactions that need outbox-pattern dispatching.
+   - [Outbox / transactional messaging — if the service uses it]: identify transactions that need outbox-pattern dispatching.
    - Cache: identify reads needing a cache get/factory + invalidation patterns.
    - Integration touch-points: payment provider, email provider, push-notification provider, error monitoring, AI/LLM client — whichever the repo's architecture docs name.
    - Auth / authorization: which authorization resource needed.
-   - Typed clients (e.g. Refit `I{Entity}Api`) for cross-service calls.
-   - Test additions: which unit / integration test projects; mention Testcontainers + base-test + collection patterns; outbox notification testing flow.
+   - Typed HTTP clients (e.g. Refit `I{Entity}Api`) where used, for cross-service calls.
+   - Test additions: which unit / integration test projects; mention Testcontainers + base-test + collection patterns; outbox/notification testing flow where applicable. Defer to `.claude/rules/backend/*`.
 
    **WEB** (React + Turbo monorepo — see `skills/react-turbo-conventions/`):
    - Affected app(s) under `apps/`.
@@ -97,7 +97,7 @@ For each affected surface:
    - Affected screens (Expo Router file paths under `app/`).
    - Screen containers from `components/layout/`.
    - Data hooks: `useFetchGroupedData<T>` / `useFetchDetailData` / `useFetchEditData` / `useMutateData` — which to add or modify.
-   - State slices + persistence layer choice (secured / farm / feature / global / user-local / non-persisted).
+   - State slices + persistence layer choice — follow the repo's `.claude/rules/mobile/code-style.md` for state/persistence layers.
    - Services: interface + class injecting the rest-service abstraction; static cache key methods.
    - Forms: React Hook Form + Yup; co-located `validation.ts`.
    - Lists: the repo's FlashList wrapper, not raw `FlatList`.
@@ -129,9 +129,9 @@ Follow `templates/technical-notes.md`. Structure (Markdown — GitHub renders it
 - `<service>/.../TransactionConfiguration.cs` — add unique index on (ProviderReference, ProviderEventId)
 
 **Patterns this will use**:
-- MediatR CQRS Command + Handler (full service)
-- Outbox pattern (write `TransactionConfirmed` event in the same DB transaction as the state change)
-- Event handler `TransactionConfirmedHandler` in `<service>.Worker/Handlers/` — must be idempotent on `ProviderEventId`
+- [Command/Query + Handler — if the service uses CQRS (e.g. MediatR)] (full service)
+- [Outbox / transactional messaging — if the service uses it] (write `TransactionConfirmed` event in the same DB transaction as the state change)
+- Event handler `TransactionConfirmedHandler` in `<service>.Worker/Handlers/` — must be idempotent on `ProviderEventId` (if the service uses a message/worker layer)
 - Cache invalidation after the state change
 
 **Tests needed**:

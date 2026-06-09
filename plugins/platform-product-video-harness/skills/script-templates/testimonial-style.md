@@ -15,16 +15,16 @@
 - **Voiceover** (≤ 35 chars):
   > "{{subject_short_intro}}"
   >
-  > _Example: "Meet Bola." (or "Sade, smallholder farmer.")_
+  > _Example: "Meet Bola." (or "Sade, small business owner.")_
 - **Caption**: `"{{subject_name}}, {{subject_role}}"`
 
 ### Scene 2 — QUOTE PART 1 (3.0s → 11.0s, 8.0s)
 
-- **Visual**: `{{asset_subject_context}}` — B-roll of the subject's farm / work. `<LowerThird name="{{subject_name}}" role="{{subject_role}}" />` overlay.
+- **Visual**: `{{asset_subject_context}}` — B-roll of the subject's business / work. `<LowerThird name="{{subject_name}}" role="{{subject_role}}" />` overlay.
 - **Voiceover** (≤ 90 chars; the subject's actual quote, condensed):
   > "{{quote_part_1}}"
   >
-  > _Example: "I used to spend hours every Sunday tallying my farm sales."_
+  > _Example: "I used to spend hours every Sunday reconciling my sales."_
 - **Caption**: `"{{quote_part_1}}"` (rendered as quote marks)
 
 ### Scene 3 — QUOTE PART 2 (11.0s → 18.0s, 7.0s)
@@ -59,7 +59,7 @@
 |---|---|---|
 | `subject_name` | ✅ | brief.md (the testifier) |
 | `subject_short_intro` | ✅ | scriptwriter drafts; ≤ 35 chars |
-| `subject_role` | ✅ | brief.md (farmer / partner / etc.) |
+| `subject_role` | ✅ | brief.md (business owner / partner / etc.) |
 | `persona_label` | ✅ | brand.personas matching subject_role |
 | `quote_part_1`, `quote_part_2` | ✅ | brief.md (the actual quote, split into 2 parts) |
 | `cta_line`, `cta_line_short` | ✅ | brief.md / default |

@@ -23,7 +23,7 @@ You **can**: read/write/edit files, run build and test commands. You **cannot**:
    ```
    test(<surface>): <imperative lowercase description>
    ```
-   - Multi-surface test commits get a comma scope: `test(service,mobile): cover disease detection flow`.
+   - Multi-surface test commits get a comma scope: `test(service,mobile): cover order processing flow`.
    - **No issue ID in commit line.**
    - **No AI/Claude attribution** in the commit, code, or comments — no `Co-Authored-By: Claude/Anthropic`, no `noreply@anthropic.com` co-author, no `Generated with Claude Code` / 🤖 line. Hard rule — `attribution-guard` blocks it.
    - **Do not update the tracker** — the orchestrator owns it.
