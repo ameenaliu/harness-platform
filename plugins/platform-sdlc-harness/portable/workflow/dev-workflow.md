@@ -5,16 +5,16 @@ Drive a GitHub Story issue from requirements to a reviewed PR through **10 phase
 **Usage**: `<command> <story-issue-number>` where command ∈ `requirements | plan | develop | pre-test-review | test | pre-pr-review | pr | pr-review` (or run the whole pipeline). Always read the workspace config (`.claude/context/platform-context.md`) and the task tracker (`ai/tasks/*<story-issue-number>*.md`) before acting; resume from recorded state.
 
 ## Phase 1 — Requirements
-Sync the monorepo to the integration branch (default `develop`). Spawn the **planner** to pull the Story (`gh issue view`), identify the parent Feature via the sub-issue link (drives branch routing), identify affected Surfaces (`[<surface>]` title prefix + `surface:*` label), and surface clarifying questions; relay the human's answers back. No code. Ensure the Story's Project **Status** is at least `Ready` (set via `gh project item-edit` if it is in `Backlog`/`No Status`).
+Sync the monorepo to the integration branch (default `develop`). Spawn the **planner** to pull the Story (`gh issue view`), identify the parent Feature via the sub-issue link (for linking / board grouping / PR-body `Part of #` context — NOT branch routing), identify affected Surfaces (`[<surface>]` title prefix + `surface:*` label), and surface clarifying questions; relay the human's answers back. No code. Ensure the Story's Project **Status** is at least `Ready` (set via `gh project item-edit` if it is in `Backlog`/`No Status`).
 
 ## Phase 2 — Plan → GATE #1
-Spawn the **planner** to propose 2–3 approaches; the human selects one. The planner decomposes into Surface-tagged tasks with `[<surface>]` title prefixes, decides branch strategy from the parent Feature finding, writes `docs/initiatives/<slug>/execution-plan.md` + the runtime tracker, and synchronises `work-units.md` + `test-plan.md`.
+Spawn the **planner** to propose 2–3 approaches; the human selects one. The planner decomposes into Surface-tagged tasks with `[<surface>]` title prefixes, decides the branch strategy (single-branch model — one user branch off `develop`, regardless of the parent Feature), writes `docs/initiatives/<slug>/execution-plan.md` + the runtime tracker, and synchronises `work-units.md` + `test-plan.md`.
 
 Then, as orchestrator:
 - Create the Task **Issues** (`gh issue create` with `type:task` + `surface:<surface>` labels and Markdown bodies per `github-rendering`), attach each as a **sub-issue** of the Story (`gh api graphql addSubIssue`; fallback `Parent: #<story>` body line), add each to the org Project (`gh project item-add`) with its Surface field set, and add the `platform-sdlc-harness` label to the Story.
-- **Cut branches** per the planner's decision (branch names from `platform-context.md`, defaults shown):
-  - If parent Feature exists: cut `features/<feature-slug>/main` off freshly-pulled `develop` (if absent), then the user branch `users/<user-slug>/<feature-slug>/<impl-slug>` off the feature branch.
-  - If no parent Feature OR type is `Bug`: cut user branch `users/<user-slug>/bugs/<impl-slug>` off freshly-pulled `develop`.
+- **Cut ONE user branch** off freshly-pulled `develop` (single-branch model — no feature branch; branch names from `platform-context.md`, defaults shown):
+  - Story: `users/<user-slug>/<impl-slug>`.
+  - Bug: `users/<user-slug>/bugs/<impl-slug>`.
 - Commit **all four initiative docs** (`README.md`, `spec.md`, `test-plan.md`, `work-units.md`) plus `execution-plan.md` on the user branch as the first commit with `docs(initiative): add execution plan for <Story title>`.
 - Set the Story's Project **Status** `Ready` → `In Progress`.
 
@@ -24,7 +24,7 @@ Then, as orchestrator:
 For each task in dependency order (sequential):
 - next ⏳ task → 🔧 In Progress → set the Task issue's Project Status → `In Progress` + assignee (first activation) → spawn **developer** (pass plan rows, Surface tag).
 - spawn **per-task reviewer** on the diff (Phase 0 pre-check → Phase A spec → Phase B quality).
-- APPROVED → ✅ Done, record commit hashes; set the Task issue's Project Status → `In Review`. CHANGES_REQUESTED → relay `[S<n>]`/`[R<n>]` to the developer; repeat.
+- APPROVED → integrate the task worktree into the user branch with `git merge --no-ff` if worktree is enabled (preserve task commits — never `--squash`; nothing to integrate when worktree is disabled, commits already land on the user branch) → ✅ Done, record commit hashes; set the Task issue's Project Status → `In Review`. CHANGES_REQUESTED → relay `[S<n>]`/`[R<n>]` to the developer; repeat.
 
 Never start the next task before the current one is approved. Multi-surface tasks load multiple conventions skills in the developer agent.
 
@@ -46,15 +46,15 @@ Spawn the **planner** in `architecture-audit` mode with the full diff range. Pla
 ## Phase 9 — PR Creation → GATE #3
 Present the per-surface summary + Phase 4 + Phase 7 review reports. **GATE #3**: require `APPROVED`. Then:
 - Push the user branch to origin.
-- Create the PR via `gh pr create --base <target> --head <user-branch>`: target = base branch chosen at GATE #1.
+- Create the PR via `gh pr create --base develop --head <user-branch>`: base is always `develop`.
 - Title format: a Conventional Commit summary (e.g. `feat(mobile,service): <Story title>`).
-- Body: link to initiative docs, summary of changes per Surface, and `Closes #<story>` (auto-closes the Story on merge) plus `Part of #<task>` / `Closes #<task>` lines for each Task.
+- Body: link to initiative docs, summary of changes per Surface, and `Closes #<story>` + a `Closes #<task>` for EVERY Task (all auto-close on merge into `develop`), plus ONE `Part of #<feature>` link to the parent Feature (which stays open).
 - Set each Task issue's Project Status → `In Review`. Post a tracker-summary comment on the Story (`gh issue comment`).
 - Set reviewers via `gh pr edit --add-reviewer` from `platform-context.md` (or rely on CODEOWNERS).
 - Record the PR number + URL in the tracker header.
 
 ## Phase 10 — Post-PR Review
-Spawn the **reviewer** in `holistic-post-pr` mode with `<pr-number>`. Reviewer audits the open PR's diff (`gh pr diff`), posts inline comments via `gh api repos/{owner}/{repo}/pulls/<n>/comments`, then posts a summary review via `gh pr review <n> --comment`. **Comment-only — never blocks the PR.** Append comment IDs to tracker `Phase 10 PR Review`. The harness's job is now done; merge (which auto-closes the Story via `Closes #`) + the final Project Status move to `Done` are the human's responsibility.
+Spawn the **reviewer** in `holistic-post-pr` mode with `<pr-number>`. Reviewer audits the open PR's diff (`gh pr diff`), posts inline comments via `gh api repos/{owner}/{repo}/pulls/<n>/comments`, then posts a summary review via `gh pr review <n> --comment`. **Comment-only — never blocks the PR.** Append comment IDs to tracker `Phase 10 PR Review`. The harness's job is now done; on merge into `develop` the Story + all Tasks auto-close via `Closes #` (requires `develop` to be the GitHub default branch — verified at init-workspace) and the Project's "Item closed → Done" workflow moves them to Done automatically. The parent Feature stays open.
 
 ## Invariants
 
@@ -64,4 +64,4 @@ Spawn the **reviewer** in `holistic-post-pr` mode with `<pr-number>`. Reviewer a
 - Every commit builds cleanly; the reviewer verifies builds independently.
 - The approved plan is the single source of truth.
 - Phase 10 never blocks the PR — comment-only.
-- Issues close on PR merge via `Closes #`; the final Project Status move to `Done` is manual, post-merge.
+- Issues auto-close on PR merge into `develop` via `Closes #` (develop must be the GitHub default branch); the Project's "Item closed → Done" workflow then moves them to Done automatically. The parent Feature stays open.

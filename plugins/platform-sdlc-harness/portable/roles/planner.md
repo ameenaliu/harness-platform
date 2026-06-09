@@ -28,8 +28,8 @@ The surface→directory map and the stacks each surface supports live in `packs/
 
 ## Phase 1 — Requirements Ingestion
 
-1. **Pull the Story issue** via `gh` (by number): `gh issue view <n> --json number,title,body,labels,assignees`. Parse title, body, acceptance criteria, linked items, and **type** (`type:story` vs `type:bug` label — both flow through the same pipeline; the routing in step 4 differs).
-2. **Identify the parent Feature** — read the Story's parent via the native sub-issue link (`gh api graphql` `issue(number:N){ parent { number title } }`) or, in fallback mode, the `Parent: #<n>` line in the body / the Project **Parent** field. If a parent Feature exists, record `<parent-feature-number>` + `<parent-feature-title>`. This drives the branch base in Phase 2.
+1. **Pull the Story issue** via `gh` (by number): `gh issue view <n> --json number,title,body,labels,assignees`. Parse title, body, acceptance criteria, linked items, and **type** (`type:story` vs `type:bug` label — both flow through the same pipeline; the branch-name shape in step 3 differs slightly).
+2. **Identify the parent Feature** — read the Story's parent via the native sub-issue link (`gh api graphql` `issue(number:N){ parent { number title } }`) or, in fallback mode, the `Parent: #<n>` line in the body / the Project **Parent** field. If a parent Feature exists, record `<parent-feature-number>` + `<parent-feature-title>`. This is used for sub-issue linking, board Parent grouping, and the PR-body `Part of #<feature>` link — it does **NOT** affect branch routing ("Item-Feature ≠ git branch").
 3. **Identify affected Surfaces** — read the Story title (`[service]` / `[mobile]` / `[web]` prefix) and the `surface:*` label. If neither is present, ask the human via `AskUserQuestion` which surfaces the story touches (multi-select).
 4. **Identify ambiguities** — for anything unclear or missing, ask the human structured questions (2–4 concrete options each; multi-select when several apply; group related questions). **Wait for answers — never assume.** Repeat until resolved.
 5. **(Optional) Initiative docs** — if the story warrants persistent docs under `docs/initiatives/<slug>/` (multi-task stories, architectural changes, anything > 3 tasks), offer to produce the four-file folder (`README.md`, `spec.md`, `test-plan.md`, `work-units.md`). Ask the human first. Short stories skip this — the execution plan + tracker suffice.
@@ -41,15 +41,15 @@ The surface→directory map and the stacks each surface supports live in `packs/
 2. **Decompose** into ordered, atomic tasks. For each: Task ID (T1, T2…), **Surface(s)** (`SERVICE` / `WEB` / `MOBILE`), title (with `[surface]` prefix), description, scope (affected files/classes relative to monorepo root), dependencies (intra-task-order), complexity (S/M/L).
    - Group tasks by Surface where it improves clarity, but execute strictly in dependency order (Phase 3 is sequential).
    - Create one `T-TEST` task per affected Surface (e.g. `T-TEST-SERVICE`, `T-TEST-MOBILE`) — single test task per surface covers unit + integration tests for that surface's work.
-3. **Decide the branch strategy** based on the Phase 1 parent-Feature finding (branch names from `platform-context.md`, defaults shown):
-   - **Parent Feature exists** → base branch is `features/<feature-slug>/main` (cut off `develop` if absent). User branch is `users/<user-slug>/<feature-slug>/<impl-slug>`. PR target is the feature branch.
-   - **No parent Feature** OR type is `Bug` → user branch is `users/<user-slug>/bugs/<impl-slug>` cut off `develop`. PR target is `develop`.
-   `<user-slug>` from `platform-context.md`. `<feature-slug>` = slugified parent Feature title. `<impl-slug>` = slugified Story title, shortened to ≤ 40 chars.
+3. **Decide the branch strategy** — single-branch model, ONE user branch cut off `develop` for everything (branch names from `platform-context.md`, defaults shown):
+   - **Story** → user branch `users/<user-slug>/<impl-slug>` cut off `develop`. PR base is `develop`.
+   - **Bug** → user branch `users/<user-slug>/bugs/<impl-slug>` cut off `develop`. PR base is `develop`.
+   There is NO `features/<feature-slug>/main` branch, ever — the parent Feature does not affect branching. `<user-slug>` from `platform-context.md`. `<impl-slug>` = slugified Story title, shortened to ≤ 40 chars.
 4. **Produce diagrams**: a Mermaid `classDiagram` (new/modified types across all touched surfaces), a `sequenceDiagram` (cross-service flows, user↔mobile↔service, message paths, error/alt branches), and a `flowchart TD` (runtime/decision flow).
 5. **Locate the initiative folder** — search `README.md` files under `docs/initiatives/` for the Story issue number; if found, use that folder, else derive a kebab-case slug from the title and create it. Write the **execution plan** to `docs/initiatives/<slug>/execution-plan.md`.
 6. **Create the task tracker** at `ai/tasks/<YYYY-MM-DD>_<story-issue-number>_<slug>.md` (local runtime state, **never committed**). Include:
    - **Task table**: `Task ID | Surface | Issue # | Title | Status | Reviewer Verdict | Commit(s) | Notes` with legend `⏳ Pending · 🔧 In Progress · 🔄 In Review · ✅ Done`.
-   - **Branch Strategy** section: parent Feature (id+title or "none"), base branch chosen, user branch name.
+   - **Branch Strategy** section: parent Feature (id+title or "none", for context/linking only), user branch name, PR base `develop`.
    - **Holistic Review** sections (`Phase 4 Pre-Test Review`, `Phase 7 Pre-PR Review`, `Phase 10 PR Review`) and an **Architecture & Rules Reconciliation** section (`Phase 8`) — initially empty placeholders the orchestrator fills.
 7. **Present the plan** and wait for explicit `APPROVED`. If changes are requested, revise `execution-plan.md` **and synchronise** the dependent files:
    - `work-units.md` — task table must exactly match the execution plan's Task Breakdown.

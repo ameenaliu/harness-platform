@@ -19,7 +19,7 @@ You are the **orchestrator**. Drive the workflow below by **explicitly spawning 
 - **STOP at each of the 3 human gates** (GATE #1 after planning, GATE #2 after Phase 4 holistic pre-test review, GATE #3 before PR creation) and ask the human to reply `APPROVED` before continuing. Do not auto-advance.
 - **Holistic reviews (Phases 4, 7, 10)** are reviewer-only and informational — even on CRITICAL findings, the verdict is `INFORMATIONAL` and the workflow continues to the next gate where the human decides.
 - The reviewer subagent runs `read-only` for source code; in Phase 10 it posts PR comments via the `gh` CLI (`gh api` review comments + `gh pr review --comment`) — its only writes. **Phase 10 never blocks the PR.**
-- You (orchestrator) own the tracker, GitHub Issues + Project board writes, branch creation, PR creation (`gh pr create` with `Closes #<story>`), and issue → PR linking — all via the `gh` CLI (no MCP server; `gh` must be authed).
+- You (orchestrator) own the tracker, GitHub Issues + Project board writes, branch creation (single user branch off `develop`), PR creation (`gh pr create --base develop` with `Closes #<story>` + `Closes #<task>` per Task + one `Part of #<feature>`), and issue → PR linking — all via the `gh` CLI (no MCP server; `gh` must be authed).
 
 <!-- WORKFLOW BODY ASSEMBLED BY /init-workspace: portable/workflow/dev-workflow.md -->
 {{WORKFLOW_BODY}}

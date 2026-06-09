@@ -1,5 +1,31 @@
 # Changelog
 
+## 1.5.0 — Single-branch model + native issue auto-close
+
+The dev-workflow's git/branch/PR model is simplified to a **single integration branch**, and issue closure + board completion are now **fully automatic** on merge.
+
+### Single-branch model (feature-branch tier removed)
+
+- The two-tier feature-branch model is gone. **Every Story AND Bug now cuts ONE user branch off `develop`** (the Integration Branch): `users/<user-slug>/<impl-slug>` for stories, `users/<user-slug>/bugs/<impl-slug>` for bugs. **PR base = `develop` for everything.**
+- There is **no `features/<feature-slug>/main` branch, ever.** The item **Feature** (Epic → Feature → Story → Task) is now explicitly a **backlog grouping only** — still identified for sub-issue linking, board Parent grouping, and PR-body context, but it no longer affects git branches or PR base ("Item-Feature ≠ git branch").
+- Branch-name regex collapsed to `^users/[a-z0-9_]+/(bugs/)?[a-z0-9-]+$`. Applied across the Claude `skills/` and the `portable/` Codex mirror (roles, workflow, mechanics, `AGENTS.md.tmpl`).
+
+### Native issue auto-close on merge to `develop`
+
+- Because the per-Story PR now merges into `develop` (the repo default branch), GitHub's closing keywords fire on merge. `create-pr` emits `Closes #<story>` **and** `Closes #<task>` for **every** Task (so the Story + all Tasks auto-close), plus ONE `Part of #<feature>` link to the parent Feature (which stays open — a Feature has multiple stories).
+- Removed the old hedging ("the harness never auto-completes the board" / "final move to Done is manual"). Closing is now automatic on merge; the Project's **"Item closed → Done"** workflow moves items to Done. Caveat retained: this requires `develop` to be the repo's **GitHub default branch** (init-workspace verifies).
+
+### `PR Merge Method` context setting + Phase 3 no-squash
+
+- New **`PR Merge Method`** field in `platform-context.md` (`merge` DEFAULT — preserves per-task commits | `squash` | `rebase`). Surfaced in the GATE #3 presentation; the human performs the merge (or `gh pr merge --<method>`). **Squash does not affect issue closing** (driven by the PR-body `Closes #` keywords, not commits).
+- **Phase 3 no longer squash-merges task worktrees.** Approved task worktrees are integrated into the user branch with `git merge --no-ff` (commits preserved); when worktree is disabled the developer commits directly on the user branch. The develop-level history granularity is governed by `PR Merge Method`, not Phase 3.
+
+### init-workspace — Lever B + default-branch verification
+
+- **Lever B**: init-workspace now instructs the user to enable the Project's built-in **"When an item is closed → Set Status: Done"** workflow (UI-only — `gh`/GraphQL cannot toggle it; without it closed issues won't move to Done). Optionally also "Item reopened → In Progress".
+- **Default-branch check**: verifies `develop` is the repo's GitHub default branch (`gh repo view --json defaultBranchRef`); warns if not, since closing keywords only fire on the default branch. The finding is recorded in the context file.
+- Context-file template updated: removed the "Feature-branch pattern" row, collapsed "User-branch pattern" to the single model, added the `PR Merge Method` field and the "Item closed → Done" workflow note.
+
 ## 1.4.0 — Pluggable stack packs + Go service stack
 
 The harness is now **language/framework-agnostic**. Stacks are no longer hardwired to .NET/React/Expo — each surface's stack is a pluggable "pack" resolved from a registry, and **Go joins .NET as a first-class SERVICE stack**.

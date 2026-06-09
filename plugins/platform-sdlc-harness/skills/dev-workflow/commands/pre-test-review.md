@@ -14,7 +14,7 @@ Spawn `@platform-sdlc-reviewer` with:
 
 - `Mode: holistic-pre-test`
 - `Story: #<number>`
-- `Diff range: <base-branch>..<user-branch>` (the entire dev-phase diff against the base — `develop` or `features/<feat>/main`)
+- `Diff range: develop..<user-branch>` (the entire dev-phase diff against the integration branch `develop`)
 - `Acceptance criteria: <copy of the Story's acceptance-criteria checklist from the issue body>`
 - `Direction`: run Phase 0 → Phase A → Phase B against the FULL diff (every task commit). Verify every acceptance criterion is satisfied end-to-end across SERVICE/WEB/MOBILE. Output is **INFORMATIONAL** — surface findings but never block.
 

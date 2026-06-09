@@ -9,7 +9,7 @@ Always-on guidance for AI coding agents (Claude Code, OpenAI Codex) working in t
 - **Project (v2) board**: project number `{{PROJECT_NUMBER}}` (org-owned). Work-item state lives in the board's **Status** field.
 - **Work tracking**: GitHub **Issues** + native **sub-issues** (via `gh api graphql`), grouped on the Project board. Issue types are distinguished by `type:*` labels (and native Issue Types when the org has them enabled).
 - **Hierarchy**: Epic → Feature → Story → Task / Bug, wired as sub-issues.
-- **Status vocabulary** (Project Status field): `Backlog → Ready → In Progress → In Review → Done`. Issues are **closed** (not a Status) only on PR merge via `Closes #`; the final move to `Done` is post-merge.
+- **Status vocabulary** (Project Status field): `Backlog → Ready → In Progress → In Review → Done`. Issues **close automatically** (not a Status) on PR merge into `{{INTEGRATION_BRANCH}}` via `Closes #` — which fires because `{{INTEGRATION_BRANCH}}` is the GitHub **default branch**. The Project's "Item closed → Done" workflow then moves them to Done automatically.
 - **No Area path / Iteration path.** An optional Project **Iteration** field can hold a sprint window if the board uses one.
 - **CLI**: every remote operation uses the **`gh` CLI** (`gh issue`, `gh pr`, `gh project`, `gh api`, `gh api graphql`) — there is no MCP server. `gh` must be installed and authenticated in the agent's environment with `repo`, `project`, and `read:org` scopes.
 
@@ -30,25 +30,25 @@ Configuration above is read from `.claude/context/platform-context.md` (recorded
 - Dependencies use GitHub's **native issue dependencies** (GA Aug 2025): a typed **Blocked by** relationship via `POST /repos/{owner}/{repo}/issues/{n}/dependencies/blocked_by` (body `issue_id` = the blocker's integer database id). This renders in the issue relationship panel and on the board — do **not** use a `blocked` label or a body link in the happy path. Body line + `blocked` label is a fallback only for GitHub Enterprise versions without the feature. See `.agents/skills/github-rendering/SKILL.md` § Dependency convention.
 - See `.agents/skills/github-rendering/SKILL.md` for the canonical issue body shapes and numbering scheme.
 
-## Branching — two-tier model
+## Branching — single-branch model
 
-The planner reads the Story's parent Feature (via the sub-issue link / `Parent` reference) and chooses the route:
+Every Story AND Bug cuts ONE user branch off `{{INTEGRATION_BRANCH}}` (the Integration / default branch). There is NO feature branch.
 
-**If parent Feature exists**:
+**Story**:
 ```
-{{PROD_BRANCH}}  ──►  {{INTEGRATION_BRANCH}}  ──►  features/<feature-slug>/main  ──►  users/{{USER_SLUG}}/<feature-slug>/<impl-slug>
+{{PROD_BRANCH}}  ──►  {{INTEGRATION_BRANCH}}  ──►  users/{{USER_SLUG}}/<impl-slug>
 ```
 
-**If no parent Feature OR work item type is Bug**:
+**Bug**:
 ```
 {{PROD_BRANCH}}  ──►  {{INTEGRATION_BRANCH}}  ──►  users/{{USER_SLUG}}/bugs/<impl-slug>
 ```
 
-- **`{{PROD_BRANCH}}`** = production/release (protected). **`{{INTEGRATION_BRANCH}}`** = integration (default branch, base for daily work).
-- **Long-lived feature branch** `features/<feature-slug>/main` is cut off `{{INTEGRATION_BRANCH}}` when the Story has a parent Feature.
-- **PR target**: the base branch chosen above (`features/<feature-slug>/main` or `{{INTEGRATION_BRANCH}}` — never another user's branch).
-- **User slug** format: `<last-initial>_<first-name>` lowercase (this repo's default: `{{USER_SLUG}}`). Regex: `^users/[a-z0-9_]+/(bugs|[a-z0-9-]+)/[a-z0-9-]+$`.
-- Phase 3 uses local git **worktrees** per Task off the user branch; squash-merge worktree → user branch on per-task approval.
+- **`{{PROD_BRANCH}}`** = production/release (protected). **`{{INTEGRATION_BRANCH}}`** = integration (the repo's GitHub **default branch**, base for daily work — required for native issue auto-close).
+- **No `features/<feature-slug>/main` branch, ever.** The item **Feature** (Epic → Feature → Story → Task) is a **backlog grouping only** — identified for sub-issue linking, board Parent grouping, and the PR-body `Part of #<feature>` link, but it does **not** affect git branches or PR base ("Item-Feature ≠ git branch").
+- **PR base**: `{{INTEGRATION_BRANCH}}` for every Story and Bug — never a feature branch, never another user's branch.
+- **User slug** format: `<last-initial>_<first-name>` lowercase (this repo's default: `{{USER_SLUG}}`). Regex: `^users/[a-z0-9_]+/(bugs/)?[a-z0-9-]+$`.
+- Phase 3 uses local git **worktrees** per Task off the user branch; on per-task approval, integrate the worktree into the user branch with `git merge --no-ff` (preserve task commits — never `--squash`). `develop` history granularity is governed by the **PR Merge Method** (`platform-context.md`), not by this step.
 - Rebase the user branch on the base; never merge the base into the user branch.
 
 ## Commit format — Conventional Commits, no issue ID
@@ -65,8 +65,8 @@ The planner reads the Story's parent Feature (via the sub-issue link / `Parent` 
 ## PR format
 
 - **Title**: a Conventional Commit summary line (e.g. `feat(mobile,service): add inventory sync`).
-- **Body**: uses the repo's PR template; carries **`Closes #<story>`** (auto-closes the Story on merge) plus `Part of #<task>` / `Closes #<task>` lines for each Task, and Surface checkboxes.
-- **Created via** `gh pr create --base <target> --head <user-branch>`; reviewers set via `gh pr edit --add-reviewer` (or CODEOWNERS).
+- **Body**: uses the repo's PR template; carries **`Closes #<story>`** plus a **`Closes #<task>`** for EVERY Task (all auto-close on merge into `{{INTEGRATION_BRANCH}}`), plus ONE **`Part of #<feature>`** link to the parent Feature (which stays open), and Surface checkboxes.
+- **Created via** `gh pr create --base {{INTEGRATION_BRANCH}} --head <user-branch>` (base is always the integration branch); reviewers set via `gh pr edit --add-reviewer` (or CODEOWNERS). The human performs the merge with the configured **PR Merge Method** (`merge` default / `squash` / `rebase`) — the method affects only `develop` history, not issue closing.
 - All content is **Markdown** — GitHub is Markdown-native; no HTML conversion.
 
 ## Data policy — hard rules (never bypass)

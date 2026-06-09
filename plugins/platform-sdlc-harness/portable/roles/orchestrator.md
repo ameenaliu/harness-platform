@@ -33,7 +33,7 @@ If you catch yourself about to read a source file, grep, or write a plan/code fi
 | 6. **Test** | tester writes unit + integration tests; per-task reviewer reviews each test commit. | — |
 | 7. **Pre-PR Review** | reviewer — holistic audit of the full diff including tests. Confirms spec compliance + AC + test coverage. | — |
 | 8. **Architecture & Rules Reconciliation** | planner in `architecture-audit` mode — diffs the change set against `.claude/architecture/*.md` and `.claude/rules/*/*.md` in the repo. Proposes updates the human approves; commits them on the user branch so they land in the same PR. INFORMATIONAL — never blocks. | — |
-| 9. **PR Creation** | you run `gh pr create` (`develop` or `features/<feature-slug>/main` as base), body carries `Closes #<story>` + per-Task links, set reviewers via `gh pr edit`. | **GATE #3** before opening the PR |
+| 9. **PR Creation** | you run `gh pr create` (base = `develop` always), body carries `Closes #<story>` + `Closes #<task>` per Task + one `Part of #<feature>`, set reviewers via `gh pr edit`. | **GATE #3** before opening the PR |
 | 10. **PR Review** | reviewer — holistic review of the opened PR, posts inline + summary comments via `gh`. **Comment-only, never blocks.** | — |
 
 ## Constraints (non-negotiable)
@@ -71,19 +71,16 @@ Phase 4 findings flow into GATE #2 (human reads them before approving). Phase 7 
 
 ## Branching (cut at GATE #1, before any code)
 
-Two-tier model (read the Story's parent Feature via the sub-issue link / `Parent` reference to decide; branch names come from `platform-context.md`, defaults shown):
+Single-branch model — every Story AND Bug cuts ONE user branch off freshly-pulled `develop` (the Integration Branch); branch names come from `platform-context.md`, defaults shown:
 
-- **If the Story has a parent Feature**:
-  - **Base (long-lived)**: `features/<feature-slug>/main` — if absent, cut off freshly-pulled `develop` and push it.
-  - **User branch**: `users/<user-slug>/<feature-slug>/<impl-slug>` cut off the base.
-  - **PR target**: `features/<feature-slug>/main`.
-- **If the Story is a Bug or has no parent Feature**:
-  - **User branch**: `users/<user-slug>/bugs/<impl-slug>` cut off freshly-pulled `develop`.
-  - **PR target**: `develop`.
+- **Story** → **User branch**: `users/<user-slug>/<impl-slug>` cut off `develop`. **PR base**: `develop`.
+- **Bug** → **User branch**: `users/<user-slug>/bugs/<impl-slug>` cut off `develop`. **PR base**: `develop`.
+
+There is NO `features/<feature-slug>/main` branch, ever. The item **Feature** is a **backlog grouping only** — identified for sub-issue linking, board Parent grouping, and the PR-body `Part of #<feature>` link, but it does **not** affect git branches or PR base ("Item-Feature ≠ git branch").
 
 `<user-slug>` = `<last-initial>_<first-name>` lowercase (e.g. `a_aliu` for Aliu Ameen, `k_moshood` for K. Moshood). Resolved from `platform-context.md`.
 
-`<feature-slug>` is derived from the parent Feature title (slugified). `<impl-slug>` is derived from the Story title or a short user-supplied descriptor.
+`<impl-slug>` is derived from the Story title or a short user-supplied descriptor.
 
 ## Tracker update points (you own these)
 
@@ -111,15 +108,15 @@ You are the only actor that writes to GitHub. All writes go through the `gh` CLI
 
 | Phase | Write |
 |---|---|
-| 1 (entry, Story-issue-input only) | Ensure the Story's Project **Status** is at least `Ready` (set if it is in `Backlog`/`No Status`). Read the Story's parent **Feature** via the sub-issue link (or the `Parent` field / body reference) — drives branch routing. |
+| 1 (entry, Story-issue-input only) | Ensure the Story's Project **Status** is at least `Ready` (set if it is in `Backlog`/`No Status`). Read the Story's parent **Feature** via the sub-issue link (or the `Parent` field / body reference) — used for board grouping + the PR-body `Part of #<feature>` link; it does NOT affect branch routing. |
 | 2 (after plan approval) | (a) Create each Task as an Issue (`gh issue create`) with `type:task` + `surface:<surface>` labels, then attach it as a **sub-issue** of the Story via `gh api graphql addSubIssue` (fallback: `type:task` label + `Parent: #<story>` line in the body). (b) Add each Task issue to the org Project (`gh project item-add`) and set its **Surface** field. (c) Add the `platform-sdlc-harness` label to the Story. (d) Set the Story's Project **Status** → `In Progress` (first activation only). |
 | 3 (per task, first activation) | Set T(n)'s Project **Status** → `In Progress` (`gh project item-edit`) + assignee (`gh issue edit --add-assignee`). |
 | 3 (per task, after reviewer APPROVED) | Set T(n)'s Project **Status** → `In Review`. Dedupe by issue number. |
 | 6 (per test task) | Set `T-TEST-<surface>` → `In Progress` then `In Review`, mirroring Phase 3. |
-| 9 (after PR created) | The PR body carries `Closes #<story>` (auto-closes the Story on merge) + `Part of #<task>` / `Closes #<task>` lines for each Task. Set each Task's Project **Status** → `In Review`. Set reviewers via `gh pr edit --add-reviewer`. Post a tracker-summary comment on the Story (`gh issue comment`). |
+| 9 (after PR created) | The PR body (base = `develop`) carries `Closes #<story>` + a `Closes #<task>` per Task (all auto-close on merge into `develop`) + ONE `Part of #<feature>` link to the parent Feature (stays open). Set each Task's Project **Status** → `In Review`. Set reviewers via `gh pr edit --add-reviewer`. Post a tracker-summary comment on the Story (`gh issue comment`). |
 | 10 (after holistic PR review) | Post each inline finding via `gh api` PR review comments + one summary review (`gh pr review --comment`). Record comment IDs in the tracker. |
 
-Issues are **closed** (not a Status value) only on PR merge via `Closes #`. The final move to `Done` on the Project board is **post-merge** — the human does it after merging the PR. The harness never auto-completes.
+Issues are **closed** (not a Status value) automatically on PR merge into `develop` via `Closes #` — which works because `develop` is the repo's **GitHub default branch** (init-workspace verifies this; closing keywords only fire on the default branch). The parent **Feature** is linked via `Part of #` and stays open. The board move to **Status: Done** is then automatic, handled by the Project's "Item closed → Done" workflow (enabled at init-workspace) — not a manual step.
 
 On any failure, emit `⚠️ GitHub sync failed at <step>: <error>. Continuing workflow.` and proceed — local tracker + git are the source of truth. Rows whose `Issue #` stays `—` are silently skipped by downstream writes.
 

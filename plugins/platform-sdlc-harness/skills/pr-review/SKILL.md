@@ -275,7 +275,7 @@ Checked against the loaded conventions + `.claude/context/platform-context.md`.
 
 ### Git Hygiene (all surfaces)
 
-- [ ] Working branch matches `^users/[a-z0-9_]+/(bugs|[a-z0-9-]+)/[a-z0-9-]+$`
+- [ ] Working branch matches `^users/[a-z0-9_]+/(bugs/)?[a-z0-9-]+$` (stories `users/<slug>/<impl>`, bugs `users/<slug>/bugs/<impl>`) and the PR base is `develop` (single-branch model — no feature branch)
 - [ ] Commits follow Conventional Commits with surface scope: `^(feat|fix|chore|refactor|perf|docs|ci|test|build)\(([a-z]+(/[a-z]+)?)(,[a-z]+(/[a-z]+)?)*\):\s+[a-z].*$`
 - [ ] **No issue ID `#<n>` in commit lines** (linking happens in the PR body via `Closes #<n>`)
 - [ ] PR body carries `Closes #<story>` so the Story auto-closes on merge

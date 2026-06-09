@@ -28,20 +28,19 @@ idea → /discovery-workflow → /backlog-workflow → /dev-workflow → /pr-rev
 
 - **Surface** (`service` / `web` / `mobile` / `cross-cutting`) — the work axis (replaces ADO's `[Stack]`); set via the issue-form dropdown + `surface:*` label; drives which quality hook + conventions apply.
 - **Hierarchy** uses GitHub native sub-issues (`gh api graphql addSubIssue`), degrading to `type:*` labels + a `Parent: #n` body line + a Project "Parent" field if sub-issues aren't enabled.
-- **State** lives on the org **Project (v2)** board `Status` field: `Backlog → Ready → In Progress → In Review → Done`. Issues close on PR merge via `Closes #`.
+- **State** lives on the org **Project (v2)** board `Status` field: `Backlog → Ready → In Progress → In Review → Done`. The Story + its Tasks **close automatically** on PR merge into `develop` via `Closes #` (works because `develop` is the GitHub default branch); the Project's "Item closed → Done" workflow then moves them to Done. The parent Feature is linked via `Part of #` and stays open.
 - Canonical issue bodies, numbering, sub-issue + dependency protocol: see `skills/github-rendering/SKILL.md`.
 
-## Branching (two-tier)
+## Branching (single-branch model)
 
 | | |
 |---|---|
 | Production | `main` (protected) |
-| Integration | `develop` (default branch, base for daily work) |
-| Feature integration | `features/<feature-slug>/main` (cut off `develop`) |
-| User/working branch | `users/<user-slug>/<feature-slug>/<impl-slug>` → PR target `features/<feature-slug>/main` |
-| Bug / no-parent-Feature | `users/<user-slug>/bugs/<impl-slug>` → PR target `develop` |
+| Integration | `develop` (GitHub default branch, base for daily work + PR base for everything) |
+| User/working branch — Story | `users/<user-slug>/<impl-slug>` → PR base `develop` |
+| User/working branch — Bug | `users/<user-slug>/bugs/<impl-slug>` → PR base `develop` |
 
-Branch names are parameterized in `platform-context.md`. Commits: Conventional Commits `<type>(<surface>): <desc>` — **no issue id in the commit**; linking happens in the PR body via `Closes #<story>`.
+Every Story AND Bug cuts ONE user branch off `develop`; **PR base = `develop` for everything**. There is no `features/<feature-slug>/main` tier — the item **Feature** (Epic → Feature → Story → Task) is a **backlog grouping only** (sub-issue linking, board Parent grouping, PR-body `Part of #` context); it does **not** affect git branches ("Item-Feature ≠ git branch"). Branch names are parameterized in `platform-context.md`. Commits: Conventional Commits `<type>(<surface>): <desc>` — **no issue id in the commit**; linking happens in the PR body via `Closes #<story>`.
 
 ## Setup
 
@@ -74,7 +73,7 @@ Opening the repo prompts a one-time trust, after which the plugin is enabled aut
 
 | Agent | Role | Cannot |
 |---|---|---|
-| **Planner** | Pulls the Story, finds the parent Feature (drives branch routing), proposes 2–3 approaches, decomposes into Task sub-issues, writes plan + tracker. Runs discovery + backlog refinement. | Write outside `docs/initiatives/` and `ai/` |
+| **Planner** | Pulls the Story, finds the parent Feature (for linking / board grouping / PR-body context — not branch routing), proposes 2–3 approaches, decomposes into Task sub-issues, writes plan + tracker. Runs discovery + backlog refinement. | Write outside `docs/initiatives/` and `ai/` |
 | **Developer** | Implements one Task at a time in a worktree; commits code only. Verifies the running MOBILE UI with **agent-device** and runs advisory security/quality scans (security-scan, react-doctor, dead-code-analysis, dotnet-code-quality, expo-doctor, bundle-budget). | Run any `gh`/remote write; write tests; touch `ai/*` |
 | **Reviewer** | Read-only code review (per-task + holistic). Phase B runs the advisory scans (security-scan SAST/secrets/CVEs, react-doctor, Knip/madge, Roslynator) and raises new high-severity findings as comments. Phase 10 posts PR comments via `gh`. | Write/edit any source file |
 | **Tester** | Writes unit + integration tests per surface, plus MOBILE **Maestro** E2E flows; commits test code only. | Run any `gh`/remote write; touch `ai/*` |

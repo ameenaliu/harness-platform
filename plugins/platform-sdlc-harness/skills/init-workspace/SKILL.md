@@ -189,7 +189,7 @@ The platform is single-monorepo (`<org>/platform`) by design, so this step typic
 
 For the path:
 1. Verify it exists and is a git repo (`git -C <path> rev-parse --is-inside-work-tree`).
-2. Identify the **default branch** locally (`git -C <path> symbolic-ref refs/remotes/origin/HEAD`) and via GitHub (`gh repo view --json defaultBranchRef -q .defaultBranchRef.name`). Expected: `develop`. If not `develop`, ask the user to confirm — the harness's two-tier model uses `develop` as the integration / default branch.
+2. Identify the **default branch** locally (`git -C <path> symbolic-ref refs/remotes/origin/HEAD`) and via GitHub (`gh repo view <owner>/<repo> --json defaultBranchRef -q .defaultBranchRef.name`). Expected: `develop`. The harness's single-branch model uses `develop` as the integration **and** GitHub default branch. **Verify `develop` is the GitHub default branch** — this is required for native issue auto-close: GitHub only fires a PR's `Closes #` keywords when they reach the *default* branch. If `develop` is NOT the default, **WARN**: *"`develop` is not this repo's GitHub default branch (current default: `<name>`). Issues will only auto-close when the closing keyword reaches the default branch — either set `develop` as the default branch (Settings ▸ Branches), or accept that per-Story issues close only when `develop` is later merged into `<name>`."* Record the finding in the context file.
 3. Confirm the **production branch** exists: `main` (protected). Verify with `git -C <path> ls-remote --heads origin main` (or `gh api repos/<org>/<repo>/branches/main`). If only `master` exists, ask the user which name to record (`main` default; `master` allowed literally if they say so).
 4. Scan the repo for the **surfaces** present and **decide each surface's stack**, driven by `packs/registry.json` (`surfaces` → each entry's `dir` + the `stacks` it supports). For each surface directory that exists (`service/`, `web/`, `mobile/`) plus the logical **CROSS-CUTTING** surface (`docs/`, `.github/`, CI — not a directory requirement):
    - **Detect** the stack by testing each supported stack's `detect` files/globs from its `packs/<stack>/pack.json` (e.g. SERVICE: `go.mod` → `go`; `*.csproj`/`global.json` → `dotnet`. WEB: `turbo.json` → `react-turbo`. MOBILE: `app.config.*`/`app.json` → `expo`).
@@ -236,10 +236,10 @@ Discover values via `gh` rather than hardcoding anything. Never bake in a specif
 |---|---|---|
 | **Org** | `gh repo view --json owner -q .owner.login` (run inside the clone, or pass `<org>/<repo>`) | e.g. `kawee-kids` |
 | **Repo** | `gh repo view --json nameWithOwner -q .nameWithOwner` | e.g. `<org>/platform` |
-| **Default / integration branch** | `gh repo view --json defaultBranchRef -q .defaultBranchRef.name` | expected `develop` |
+| **Default / integration branch** | `gh repo view <owner>/<repo> --json defaultBranchRef -q .defaultBranchRef.name` | expected `develop` — must be the GitHub default branch for native issue auto-close (Step 2.2) |
 | **Production branch** | branch existence check (Step 2.3) | default `main` |
-| **Feature-branch pattern** | (constant) | `features/<feature-slug>/main` |
-| **User-branch pattern** | (constant) | `users/<user-slug>/<feature-slug>/<impl-slug>` (feature work) and `users/<user-slug>/bugs/<impl-slug>` (bug / no-parent-Feature) |
+| **User-branch pattern** | (constant) | `users/<user-slug>/<impl-slug>` (stories) and `users/<user-slug>/bugs/<impl-slug>` (bugs) — both cut off `develop`, PR base `develop`. No feature-branch tier. |
+| **PR Merge Method** | (constant; user may override) | `merge` (DEFAULT — preserves per-task commits) / `squash` / `rebase` — governs `develop` history granularity; does NOT affect issue closing |
 | **`<user-slug>`** | derive from `gh api user -q .name` (fallback `gh api user -q .login`, then `git config user.name`) | format `<last-initial>_<first-name>` lowercase — e.g. `Aliu Ameen` → `a_aliu`, `K. Moshood` → `k_moshood`. Suggest, then ask the human to confirm. |
 | **Project (v2) number + owner** | `gh project list --owner <org>` | the org Project board this repo's issues live on (see flow below) |
 
@@ -261,6 +261,9 @@ Discover values via `gh` rather than hardcoding anything. Never bake in a specif
    `Backlog`, `Ready`, `In Progress`, `In Review`, `Done`.
    - GitHub's default Status field ships `Todo / In Progress / Done`. If options are missing, add them (UI or `gh api graphql` `updateProjectV2SingleSelectField` mutation), or tell the user which options to add. Do not proceed with a Status vocabulary the runtime writes can't satisfy.
 5. Ensure (or note for creation) the additional fields the harness uses: **Surface** (single-select: `service / web / mobile / cross-cutting`), **Iteration** (optional sprint field), **Parent** (used as the sub-issue fallback). Record what exists.
+6. **Lever B — enable the "Item closed → Done" Project workflow.** Instruct the user to turn on the Project's built-in automation so closed issues move to **Status: Done** on the board:
+   > "Open the Project ▸ **⋯** (top-right) ▸ **Workflows** ▸ **Item closed**, set the action to **Set Status → Done**, and **enable** it. (Optionally also enable **Item reopened → Set Status: In Progress**.)"
+   This is **UI-only** — there is no `gh project workflow` command and GraphQL cannot toggle built-in workflows, so the harness cannot do it for you. **Without it, closed issues will not move to Done on the board** even though they close natively on merge. Confirm with the user that it is enabled and record the finding.
 
 Record `Project Number` + `Project Owner` in the context file — every downstream workflow reads them for `gh project item-add` / `gh project item-edit`.
 
@@ -323,12 +326,13 @@ Generated by `/init-workspace`. Local-only, git-ignored.
 
 - **Org**: `<org>` (e.g. `kawee-kids`)
 - **Repo**: `<org>/platform`
-- **Default / Integration Branch**: `develop`
+- **Default / Integration Branch**: `develop` (GitHub default branch — required for native issue auto-close; <verified default: yes | WARN: default is `<name>`>)
 - **Production Branch**: `main` (protected)
-- **Feature-branch pattern**: `features/<feature-slug>/main` (cut off `develop` when a Story has a parent Feature)
-- **User-branch pattern**:
-  - Feature work: `users/<user-slug>/<feature-slug>/<impl-slug>` → PR base = `features/<feature-slug>/main`
-  - Bug / no-parent-Feature: `users/<user-slug>/bugs/<impl-slug>` → PR base = `develop`
+- **User-branch pattern** (single-branch model — every Story/Bug cuts ONE branch off `develop`):
+  - Story: `users/<user-slug>/<impl-slug>` → PR base = `develop`
+  - Bug: `users/<user-slug>/bugs/<impl-slug>` → PR base = `develop`
+  - No feature-branch tier. The item **Feature** is a backlog grouping only (sub-issue linking / board Parent / PR-body `Part of #`) — it does not affect git branches.
+- **PR Merge Method**: `merge` (DEFAULT — preserves per-task commits) | `squash` | `rebase` — governs `develop` history granularity; does NOT affect issue closing (the PR description's `Closes #` keywords drive that)
 - **UserSlug**: `<last-initial>_<first-name>` lowercase, e.g. `a_aliu` (from `gh api user`)
 - **Work Item Hierarchy**: Epic → Feature → Story → Task / Bug (native sub-issues; `type:*` label fallback)
 - **Issue Types**: distinguished by `type:epic|feature|story|task|bug` labels (+ native Issue Types if org-enabled)
@@ -337,6 +341,7 @@ Generated by `/init-workspace`. Local-only, git-ignored.
 - **Project (v2) Owner**: `<org>`
 - **Project Status vocabulary**: `Backlog → Ready → In Progress → In Review → Done` (validated against the Project's Status field)
 - **Project Fields**: Status, Surface, Iteration (optional), Parent (sub-issue fallback)
+- **Project Workflow**: "Item closed → Set Status: Done" enabled (UI-only; moves natively-closed issues to Done on the board)
 
 ## Surfaces & Stack
 
@@ -446,7 +451,7 @@ Source templates live under the plugin at `${CLAUDE_PLUGIN_ROOT}/portable/`. Dep
 
 Ask: *"Install the portable data-policy guard (pre-commit hook + GitHub Actions secret scan)? Recommended for Codex, which lacks Claude's runtime hooks."* If yes:
 - copy `portable/guards/pre-commit` → `.git/hooks/pre-commit` (and `chmod +x`), or wire via the repo's Husky setup if present.
-- copy the GitHub Actions secret-scan guard from `portable/guards/` → `.github/workflows/secret-scan.yml`, so every PR to `develop` / `features/*/main` runs the scan as a CI backstop. (This replaces the old Azure Pipelines guard; it is the GitHub Actions equivalent shipped under `portable/guards/`.)
+- copy the GitHub Actions secret-scan guard from `portable/guards/` → `.github/workflows/secret-scan.yml`, so every PR to `develop` runs the scan as a CI backstop. (This replaces the old Azure Pipelines guard; it is the GitHub Actions equivalent shipped under `portable/guards/`.)
 
 #### 7d — Update `.gitignore`
 
