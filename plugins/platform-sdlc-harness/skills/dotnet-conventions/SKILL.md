@@ -41,7 +41,7 @@ user-invocable: true
 
 | When | Branch |
 |---|---|
-| Story (parent Feature is backlog structure only) | `users/<user-slug>/<impl-slug>` (cut from `develop`). PR target = `develop`. |
+| Story (parent Feature is backlog structure only) | `users/<user-slug>/features/<impl-slug>` (cut from `develop`). PR target = `develop`. |
 | Bug | `users/<user-slug>/bugs/<impl-slug>` (cut from `develop`). PR target = `develop`. |
 
 `<user-slug>` = `<last-initial>_<first-name>` lowercase (e.g. `a_aliu`). The item Feature (Epic → Feature → Story → Task) is a backlog grouping — it does not map to a git branch.

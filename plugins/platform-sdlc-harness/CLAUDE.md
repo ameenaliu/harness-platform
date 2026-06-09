@@ -53,7 +53,7 @@ Failure policy: warn + continue. Local tracker + git are source of truth; rows w
 - **Branches** — single-branch model (branch names parameterized in `platform-context.md`; defaults shown):
   - **Production branch**: `main` (protected). **Integration branch**: `develop` (the GitHub default branch, base for daily work + PR base for everything).
   - **User branch (working branch)** — ONE per Story/Bug, cut off `develop`:
-    - Story: `users/<user-slug>/<impl-slug>` → PR base = `develop`.
+    - Story: `users/<user-slug>/features/<impl-slug>` → PR base = `develop`.
     - Bug: `users/<user-slug>/bugs/<impl-slug>` → PR base = `develop`.
   - **No `features/<feature-slug>/main` branch, ever.** The item **Feature** (Epic → Feature → Story → Task) is a **backlog grouping only** — used for sub-issue linking, board Parent grouping, and the PR-body `Part of #<feature>` link, but it does **not** affect git branches or PR base ("Item-Feature ≠ git branch").
   - `<user-slug>` = `<last-initial>_<first-name>` lowercase (e.g. `a_aliu` for Aliu Ameen).

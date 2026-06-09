@@ -13,7 +13,7 @@ Spawn the **planner** to propose 2–3 approaches; the human selects one. The pl
 Then, as orchestrator:
 - Create the Task **Issues** (`gh issue create` with `type:task` + `surface:<surface>` labels and Markdown bodies per `github-rendering`), attach each as a **sub-issue** of the Story (`gh api graphql addSubIssue`; fallback `Parent: #<story>` body line), add each to the org Project (`gh project item-add`) with its Surface field set, and add the `platform-sdlc-harness` label to the Story.
 - **Cut ONE user branch** off freshly-pulled `develop` (single-branch model — no feature branch; branch names from `platform-context.md`, defaults shown):
-  - Story: `users/<user-slug>/<impl-slug>`.
+  - Story: `users/<user-slug>/features/<impl-slug>`.
   - Bug: `users/<user-slug>/bugs/<impl-slug>`.
 - Commit **all four initiative docs** (`README.md`, `spec.md`, `test-plan.md`, `work-units.md`) plus `execution-plan.md` on the user branch as the first commit with `docs(initiative): add execution plan for <Story title>`.
 - Set the Story's Project **Status** `Ready` → `In Progress`.

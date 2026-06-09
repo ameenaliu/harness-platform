@@ -73,7 +73,7 @@ Phase 4 findings flow into GATE #2 (human reads them before approving). Phase 7 
 
 Single-branch model — every Story AND Bug cuts ONE user branch off freshly-pulled `develop` (the Integration Branch); branch names come from `platform-context.md`, defaults shown:
 
-- **Story** → **User branch**: `users/<user-slug>/<impl-slug>` cut off `develop`. **PR base**: `develop`.
+- **Story** → **User branch**: `users/<user-slug>/features/<impl-slug>` cut off `develop`. **PR base**: `develop`.
 - **Bug** → **User branch**: `users/<user-slug>/bugs/<impl-slug>` cut off `develop`. **PR base**: `develop`.
 
 There is NO `features/<feature-slug>/main` branch, ever. The item **Feature** is a **backlog grouping only** — identified for sub-issue linking, board Parent grouping, and the PR-body `Part of #<feature>` link, but it does **not** affect git branches or PR base ("Item-Feature ≠ git branch").

@@ -6,9 +6,9 @@ The dev-workflow's git/branch/PR model is simplified to a **single integration b
 
 ### Single-branch model (feature-branch tier removed)
 
-- The two-tier feature-branch model is gone. **Every Story AND Bug now cuts ONE user branch off `develop`** (the Integration Branch): `users/<user-slug>/<impl-slug>` for stories, `users/<user-slug>/bugs/<impl-slug>` for bugs. **PR base = `develop` for everything.**
+- The two-tier feature-branch model is gone. **Every Story AND Bug now cuts ONE user branch off `develop`** (the Integration Branch): `users/<user-slug>/features/<impl-slug>` for stories, `users/<user-slug>/bugs/<impl-slug>` for bugs. **PR base = `develop` for everything.**
 - There is **no `features/<feature-slug>/main` branch, ever.** The item **Feature** (Epic → Feature → Story → Task) is now explicitly a **backlog grouping only** — still identified for sub-issue linking, board Parent grouping, and PR-body context, but it no longer affects git branches or PR base ("Item-Feature ≠ git branch").
-- Branch-name regex collapsed to `^users/[a-z0-9_]+/(bugs/)?[a-z0-9-]+$`. Applied across the Claude `skills/` and the `portable/` Codex mirror (roles, workflow, mechanics, `AGENTS.md.tmpl`).
+- Branch-name regex collapsed to `^users/[a-z0-9_]+/(features|bugs)/[a-z0-9-]+$`. Applied across the Claude `skills/` and the `portable/` Codex mirror (roles, workflow, mechanics, `AGENTS.md.tmpl`).
 
 ### Native issue auto-close on merge to `develop`
 

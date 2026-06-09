@@ -47,7 +47,7 @@ Every Story AND Bug cuts ONE user branch off `{{INTEGRATION_BRANCH}}` (the Integ
 - **`{{PROD_BRANCH}}`** = production/release (protected). **`{{INTEGRATION_BRANCH}}`** = integration (the repo's GitHub **default branch**, base for daily work — required for native issue auto-close).
 - **No `features/<feature-slug>/main` branch, ever.** The item **Feature** (Epic → Feature → Story → Task) is a **backlog grouping only** — identified for sub-issue linking, board Parent grouping, and the PR-body `Part of #<feature>` link, but it does **not** affect git branches or PR base ("Item-Feature ≠ git branch").
 - **PR base**: `{{INTEGRATION_BRANCH}}` for every Story and Bug — never a feature branch, never another user's branch.
-- **User slug** format: `<last-initial>_<first-name>` lowercase (this repo's default: `{{USER_SLUG}}`). Regex: `^users/[a-z0-9_]+/(bugs/)?[a-z0-9-]+$`.
+- **User slug** format: `<last-initial>_<first-name>` lowercase (this repo's default: `{{USER_SLUG}}`). Regex: `^users/[a-z0-9_]+/(features|bugs)/[a-z0-9-]+$`.
 - Phase 3 uses local git **worktrees** per Task off the user branch; on per-task approval, integrate the worktree into the user branch with `git merge --no-ff` (preserve task commits — never `--squash`). `develop` history granularity is governed by the **PR Merge Method** (`platform-context.md`), not by this step.
 - Rebase the user branch on the base; never merge the base into the user branch.
 

@@ -37,7 +37,7 @@ idea → /discovery-workflow → /backlog-workflow → /dev-workflow → /pr-rev
 |---|---|
 | Production | `main` (protected) |
 | Integration | `develop` (GitHub default branch, base for daily work + PR base for everything) |
-| User/working branch — Story | `users/<user-slug>/<impl-slug>` → PR base `develop` |
+| User/working branch — Story | `users/<user-slug>/features/<impl-slug>` → PR base `develop` |
 | User/working branch — Bug | `users/<user-slug>/bugs/<impl-slug>` → PR base `develop` |
 
 Every Story AND Bug cuts ONE user branch off `develop`; **PR base = `develop` for everything**. There is no `features/<feature-slug>/main` tier — the item **Feature** (Epic → Feature → Story → Task) is a **backlog grouping only** (sub-issue linking, board Parent grouping, PR-body `Part of #` context); it does **not** affect git branches ("Item-Feature ≠ git branch"). Branch names are parameterized in `platform-context.md`. Commits: Conventional Commits `<type>(<surface>): <desc>` — **no issue id in the commit**; linking happens in the PR body via `Closes #<story>`.

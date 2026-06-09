@@ -98,7 +98,7 @@ Record the concrete picks in the repo's service ADR; this is the harness's recom
 ### Branching — single-branch model
 | When | Branch | PR target |
 |---|---|---|
-| Story (parent Feature is backlog structure only) | `users/<user-slug>/<impl-slug>` | `develop` |
+| Story (parent Feature is backlog structure only) | `users/<user-slug>/features/<impl-slug>` | `develop` |
 | Bug | `users/<user-slug>/bugs/<impl-slug>` | `develop` |
 
 `<user-slug>` = `<first-initial>_<surname>` lowercase (from `platform-context.md`). The item Feature (Epic → Feature → Story → Task) is a backlog grouping — it does not map to a git branch.

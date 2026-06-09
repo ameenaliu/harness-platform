@@ -42,7 +42,7 @@ The surface→directory map and the stacks each surface supports live in `packs/
    - Group tasks by Surface where it improves clarity, but execute strictly in dependency order (Phase 3 is sequential).
    - Create one `T-TEST` task per affected Surface (e.g. `T-TEST-SERVICE`, `T-TEST-MOBILE`) — single test task per surface covers unit + integration tests for that surface's work.
 3. **Decide the branch strategy** — single-branch model, ONE user branch cut off `develop` for everything (branch names from `platform-context.md`, defaults shown):
-   - **Story** → user branch `users/<user-slug>/<impl-slug>` cut off `develop`. PR base is `develop`.
+   - **Story** → user branch `users/<user-slug>/features/<impl-slug>` cut off `develop`. PR base is `develop`.
    - **Bug** → user branch `users/<user-slug>/bugs/<impl-slug>` cut off `develop`. PR base is `develop`.
    There is NO `features/<feature-slug>/main` branch, ever — the parent Feature does not affect branching. `<user-slug>` from `platform-context.md`. `<impl-slug>` = slugified Story title, shortened to ≤ 40 chars.
 4. **Produce diagrams**: a Mermaid `classDiagram` (new/modified types across all touched surfaces), a `sequenceDiagram` (cross-service flows, user↔mobile↔service, message paths, error/alt branches), and a `flowchart TD` (runtime/decision flow).

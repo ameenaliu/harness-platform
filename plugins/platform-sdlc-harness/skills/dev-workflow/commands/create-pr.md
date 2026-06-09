@@ -16,7 +16,7 @@ Present a summary to the human:
 
 ```
 Ready to open PR:
-  Source branch: users/<slug>/<impl>          (or users/<slug>/bugs/<impl>)
+  Source branch: users/<slug>/features/<impl>          (or users/<slug>/bugs/<impl>)
   Target branch: develop
   Title: <type>(<surface>): <conventional-commit summary>
   Closes: #<story-number>, #<task1>, #<task2>, …   (auto-close on merge into develop)

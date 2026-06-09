@@ -17,7 +17,7 @@ Spawn `@platform-sdlc-planner` with:
   1. Propose 2–3 architectural approaches; ask the human to select one via `AskUserQuestion`.
   2. Decompose into ordered atomic tasks with `[<Surface>]`-prefixed titles, intra-order dependencies, complexity (S/M/L). Create one `T-TEST-<Surface>` per affected Surface.
   3. Decide **branch strategy** — single-branch model, ONE user branch off `develop` (the Integration Branch) for everything (branch names from `platform-context.md`; defaults `main`/`develop`):
-     - Story → user branch `users/<user-slug>/<impl-slug>`, PR base = `develop`.
+     - Story → user branch `users/<user-slug>/features/<impl-slug>`, PR base = `develop`.
      - Bug → user branch `users/<user-slug>/bugs/<impl-slug>`, PR base = `develop`.
      - There is NO `features/<feature-slug>/main` branch, ever. The parent **Feature** is a **backlog grouping only** — identified for sub-issue linking, board Parent grouping, and PR-body context, but it does **not** affect git branches or PR base. "Item-Feature ≠ git branch."
   4. Produce Mermaid diagrams (class, sequence, flow).
@@ -70,7 +70,7 @@ Once the planner returns `SUCCESS`. All GitHub writes are best-effort — warn o
    ```
 
 5. **Cut the branch** per the chosen strategy:
-   - Cut the user branch (`users/<user-slug>/<impl-slug>` for stories, `users/<user-slug>/bugs/<impl-slug>` for bugs) off the freshly-pulled integration branch (`develop`).
+   - Cut the user branch (`users/<user-slug>/features/<impl-slug>` for stories, `users/<user-slug>/bugs/<impl-slug>` for bugs) off the freshly-pulled integration branch (`develop`).
    - Push the user branch to origin so the PR has somewhere to point later.
 
 6. **Commit the initiative docs** on the user branch:
