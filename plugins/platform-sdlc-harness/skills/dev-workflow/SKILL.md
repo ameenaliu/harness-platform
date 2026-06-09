@@ -21,15 +21,15 @@ Work tracking is GitHub-native: **Issues** typed by `type:*` label, wired into t
 
 ### Workflow Phases
 
-1. **Requirements** — Planner pulls the Story issue, identifies the parent **Feature** via the sub-issue link (drives branch routing), identifies affected **Surfaces** from the title prefix, asks clarifying questions, and (optionally) drafts the four initiative MD files under `docs/initiatives/<slug>/`. Ensures the Story's Project **Status** is at least `Ready`.
-2. **Plan** — Planner proposes 2–3 approaches, human selects one. Planner writes `docs/initiatives/<slug>/execution-plan.md` and syncs `work-units.md` + `test-plan.md`; creates the local runtime tracker at `ai/tasks/*.md`. Orchestrator creates **Task issues** (`gh issue create` with `type:task` + `surface:*` labels), attaches each as a **sub-issue** of the Story (`gh api graphql addSubIssue`), adds each to the Project board with its **Surface** field set, cuts branches per the parent-Feature finding, commits the initiative docs, adds the `platform-sdlc-harness` label to the Story, and sets the Story's Status → `In Progress`. **— GATE #1**
-3. **Develop** — Per-task developer + per-task reviewer loop on the monorepo (**sequential**). Orchestrator squash-merges on approval; sets each Task's Project Status `In Progress → In Review`.
+1. **Requirements** — Planner pulls the Story issue, identifies the parent **Feature** via the sub-issue link (for linking / board grouping / PR-body context — NOT branch routing), identifies affected **Surfaces** from the title prefix, asks clarifying questions, and (optionally) drafts the four initiative MD files under `docs/initiatives/<slug>/`. Ensures the Story's Project **Status** is at least `Ready`.
+2. **Plan** — Planner proposes 2–3 approaches, human selects one. Planner writes `docs/initiatives/<slug>/execution-plan.md` and syncs `work-units.md` + `test-plan.md`; creates the local runtime tracker at `ai/tasks/*.md`. Orchestrator creates **Task issues** (`gh issue create` with `type:task` + `surface:*` labels), attaches each as a **sub-issue** of the Story (`gh api graphql addSubIssue`), adds each to the Project board with its **Surface** field set, cuts ONE user branch off `develop` (single-branch model — no feature branch), commits the initiative docs, adds the `platform-sdlc-harness` label to the Story, and sets the Story's Status → `In Progress`. **— GATE #1**
+3. **Develop** — Per-task developer + per-task reviewer loop on the monorepo (**sequential**). Orchestrator integrates each approved worktree into the user branch with `git merge --no-ff` (preserving task commits — no squash); sets each Task's Project Status `In Progress → In Review`.
 4. **Pre-Test Review** — Reviewer in `holistic-pre-test` mode audits the full diff (`<base>..<user-branch>`) vs every acceptance criterion. Findings appended to tracker `Phase 4 Holistic Review`. Informational — no state changes.
 5. **Approval** — Human reads Phase 4 findings + summary. **— GATE #2** before testing.
 6. **Test** — Tester writes tests per affected Surface, meeting each surface's pack `coverage_threshold` on new/modified code (resolved from `packs/<stack>/pack.json` — e.g. `dotnet`/`go` 80, `react-turbo` 70, `expo` 85), per-task reviewer reviews each.
 7. **Pre-PR Review** — Reviewer in `holistic-pre-pr` mode audits full diff incl tests. Findings appended to tracker `Phase 7 Holistic Review`.
 8. **Architecture & Rules Reconciliation** — Planner in `architecture-audit` mode reads `.claude/architecture/*.md` + `.claude/rules/*/*.md` in the repo, diffs against the implementation, proposes doc updates, gets human approval, commits approved updates on the user branch as `docs(architecture):` / `docs(rules):`. INFORMATIONAL — never blocks.
-9. **PR Creation** — Orchestrator pushes the branch, opens one PR via `gh pr create`, with a body carrying `Closes #<story>` (auto-closes the Story on merge) + per-Task `Part of #<task>` links, sets reviewers via `gh pr edit --add-reviewer`, flips each Task's Project Status → `In Review`, and posts a tracker-summary comment on the Story. **— GATE #3** before opening.
+9. **PR Creation** — Orchestrator pushes the branch, opens one PR via `gh pr create` (base = `develop`), with a body carrying `Closes #<story>` + a `Closes #<task>` per Task (all auto-close on merge into `develop`) + ONE `Part of #<feature>` link to the parent Feature (stays open), sets reviewers via `gh pr edit --add-reviewer`, flips each Task's Project Status → `In Review`, and posts a tracker-summary comment on the Story. **— GATE #3** before opening.
 10. **PR Review** — Reviewer in `holistic-post-pr` mode posts inline + summary comments to the GitHub PR via `gh api` review comments / `gh pr review`. **Comment-only — never blocks the PR.** Tracker records comment IDs.
 
 ### Critical Ownership Rules
@@ -47,11 +47,11 @@ Work tracking is GitHub-native: **Issues** typed by `type:*` label, wired into t
 3. Update tracker: T(n) → In Review.
 4. Reviewer (per-task mode) reviews worktree diff, returns verdict.
 5. Handle verdict:
-   - APPROVED → `git merge --squash`, tracker → Done, set Task issue's Project Status → `In Review`, clean up worktree.
+   - APPROVED → `git merge --no-ff` the worktree into the user branch (preserve task commits — never `--squash`), tracker → Done, set Task issue's Project Status → `In Review`, clean up worktree.
    - CHANGES_REQUESTED → relay `[S<n>]`/`[R<n>]` comments to Developer, fix in SAME worktree, repeat from step 3.
 
 **NEVER start T(n+1) before Reviewer approves T(n).**
-**NEVER squash-merge a worktree before Reviewer approves it.**
+**NEVER integrate a worktree before Reviewer approves it.**
 **NEVER have the Reviewer write or edit any source file.**
 
 ### Legal Tracker Status Transitions
@@ -69,7 +69,7 @@ Work tracking is GitHub-native: **Issues** typed by `type:*` label, wired into t
 - Show a brief plan before taking action on any task. Wait for approval before executing.
 - All commits: `<type>(<surface>): <imperative lowercase description>` — Conventional Commits, NO issue ID in commit line. `<type>` ∈ `feat | fix | chore | refactor | perf | docs | ci | test | build`. `<surface>` ∈ `service | web | mobile` (comma-separated for multi-surface). GitHub linking happens in the **PR body** via `Closes #<n>`, never in commits.
 - **NEVER add AI/Claude attribution** to commits, code, comments, or docs — no `Co-Authored-By: Claude/Anthropic` trailer, no `noreply@anthropic.com` co-author, no `Generated with Claude Code` / 🤖 line. Hard, critical rule — enforced by the `attribution-guard` hook and reviewer Phase 0. Applies to PR titles/bodies too.
-- All branches follow the two-tier model: user branch is `users/<user-slug>/<feature-slug>/<impl-slug>` (Story with parent Feature) or `users/<user-slug>/bugs/<impl-slug>` (Bug or no parent Feature). PR targets `features/<feature-slug>/main` or `develop` respectively. Branch names are parameterized in `platform-context.md` (defaults `main`/`develop`). See `commands/plan.md`.
+- All branches follow the single-branch model: ONE user branch cut off `develop` (the Integration Branch) — `users/<user-slug>/features/<impl-slug>` (Story) or `users/<user-slug>/bugs/<impl-slug>` (Bug). **PR base = `develop` for everything.** There is NO `features/<feature-slug>/main` branch, ever. The item **Feature** (Epic → Feature → Story → Task) is a **backlog grouping only** — identified for sub-issue linking, board Parent grouping, and PR-body context, but it does **not** affect git branches or PR base ("Item-Feature ≠ git branch"). Branch names are parameterized in `platform-context.md` (defaults `main`/`develop`). See `commands/plan.md`.
 - Each surface's pack `build_gate` must pass at all times — resolved from `packs/<stack>/pack.json` (e.g. `dotnet` → `dotnet build` zero warnings; `go` → `go build ./...` + `golangci-lint run` clean; `react-turbo` → `yarn turbo lint typecheck build`; `expo` → `yarn tsc:build && yarn lint && yarn test`).
 - Coverage thresholds come from each surface's pack `coverage_threshold`, new/modified code only (defaults today: `dotnet`/`go` 80, `react-turbo` 70, `expo` 85).
 - Task tracker must be updated (in working tree) after every status change.
@@ -126,7 +126,7 @@ Parse `$ARGUMENTS`:
 | `test` | `commands/test.md` | 6 | Per-surface tester writes tests, per-task reviewer reviews |
 | `pre-pr-review` | `commands/pre-pr-review.md` | 7 | Holistic pre-PR review by reviewer; informational findings to tracker |
 | `architecture-reconciliation` | `commands/architecture-reconciliation.md` | 8 | Planner audits `.claude/architecture/*` + `.claude/rules/*` against the diff; commits doc updates on the user branch |
-| `create-pr` | `commands/create-pr.md` | 9 | Push branch, open PR via `gh pr create` with `Closes #<story>` + per-Task links — GATE #3 |
+| `create-pr` | `commands/create-pr.md` | 9 | Push branch, open PR (base `develop`) via `gh pr create` with `Closes #<story>` + `Closes #<task>` per Task + `Part of #<feature>` — GATE #3 |
 | `post-pr-review` | `commands/post-pr-review.md` | 10 | Post inline + summary comments to the open GitHub PR via `gh`; comment-only |
 
 If the first token doesn't match a command name and isn't numeric, show this usage table and stop.

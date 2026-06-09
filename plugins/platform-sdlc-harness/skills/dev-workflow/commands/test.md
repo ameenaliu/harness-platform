@@ -42,7 +42,7 @@ For each affected Surface with a `T-TEST-<Surface>` task in the tracker:
    ```
 7. **Parse reviewer verdict**:
    - `APPROVED`:
-     - Worktree squash if applicable.
+     - Integrate the test worktree into the user branch with `git merge --no-ff` if worktree is enabled (preserving the test commits — never `--squash`); nothing to integrate when worktree is disabled.
      - Tracker: `T-TEST-<Surface>` → ✅ Done, set `Completed`, record commit.
      - GitHub sync: set the test Task issue's Project **Status** → `In Review`.
      - Move to next surface's T-TEST or exit loop.

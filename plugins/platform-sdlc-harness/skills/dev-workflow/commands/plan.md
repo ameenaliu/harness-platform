@@ -5,7 +5,7 @@
 
 ## Prerequisites
 
-- Phase 1 complete — requirements confirmed by the Planner, including the **Parent Feature** finding from the Story's sub-issue link.
+- Phase 1 complete — requirements confirmed by the Planner, including the **Parent Feature** finding from the Story's sub-issue link (used for linking / board grouping / PR-body context — NOT branch routing).
 - `platform-context.md` accessible.
 
 ## Delegate to the Planner
@@ -16,9 +16,10 @@ Spawn `@platform-sdlc-planner` with:
 - Direction:
   1. Propose 2–3 architectural approaches; ask the human to select one via `AskUserQuestion`.
   2. Decompose into ordered atomic tasks with `[<Surface>]`-prefixed titles, intra-order dependencies, complexity (S/M/L). Create one `T-TEST-<Surface>` per affected Surface.
-  3. Decide **branch strategy** from the Parent Feature finding (branch names from `platform-context.md`; defaults `main`/`develop`):
-     - Parent Feature exists → base `features/<feature-slug>/main`, user branch `users/<user-slug>/<feature-slug>/<impl-slug>`, PR target = `features/<feature-slug>/main`.
-     - No Parent Feature OR issue type = `Bug` → user branch `users/<user-slug>/bugs/<impl-slug>`, PR target = `develop`.
+  3. Decide **branch strategy** — single-branch model, ONE user branch off `develop` (the Integration Branch) for everything (branch names from `platform-context.md`; defaults `main`/`develop`):
+     - Story → user branch `users/<user-slug>/features/<impl-slug>`, PR base = `develop`.
+     - Bug → user branch `users/<user-slug>/bugs/<impl-slug>`, PR base = `develop`.
+     - There is NO `features/<feature-slug>/main` branch, ever. The parent **Feature** is a **backlog grouping only** — identified for sub-issue linking, board Parent grouping, and PR-body context, but it does **not** affect git branches or PR base. "Item-Feature ≠ git branch."
   4. Produce Mermaid diagrams (class, sequence, flow).
   5. Write `docs/initiatives/<slug>/execution-plan.md` + `work-units.md` + `test-plan.md` (kebab-case slug from the Story title).
   6. Create the runtime tracker at `ai/tasks/<YYYY-MM-DD>_<story-number>_<slug>.md` with task table (incl. an `Issue #` column), Branch Strategy section, empty `Phase 4 Holistic Review` / `Phase 7 Holistic Review` / `Phase 10 PR Review` sections.
@@ -68,9 +69,8 @@ Once the planner returns `SUCCESS`. All GitHub writes are best-effort — warn o
      --field-id <status-field-id> --single-select-option-id <in-progress-option-id>
    ```
 
-5. **Cut branches** per the chosen strategy:
-   - If parent Feature exists and `features/<feature-slug>/main` doesn't exist on origin: cut it off the freshly-pulled integration branch (`develop`), push.
-   - Cut the user branch off the chosen base.
+5. **Cut the branch** per the chosen strategy:
+   - Cut the user branch (`users/<user-slug>/features/<impl-slug>` for stories, `users/<user-slug>/bugs/<impl-slug>` for bugs) off the freshly-pulled integration branch (`develop`).
    - Push the user branch to origin so the PR has somewhere to point later.
 
 6. **Commit the initiative docs** on the user branch:
@@ -84,11 +84,11 @@ Once the planner returns `SUCCESS`. All GitHub writes are best-effort — warn o
 ## GATE #1 — Present the Plan and Wait
 
 Present a summary to the human:
-- Story title + `#<number>` + Parent Feature
+- Story title + `#<number>` + Parent Feature (backlog context only — not a branch)
 - Affected Surfaces
 - Selected approach + 1-line rationale
 - Task count + brief listing (`Issue #`, `[<Surface>]` prefix, title, complexity)
-- Branch strategy (base + user branch)
+- Branch strategy (user branch off `develop`; PR base = `develop`)
 - Initiative docs committed as `<commit-hash>`
 
 Wait for explicit `APPROVED` reply. If the human requests changes, re-invoke the planner with their notes, then re-present. **No code before approval.**

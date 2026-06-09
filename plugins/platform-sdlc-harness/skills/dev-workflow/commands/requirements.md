@@ -37,7 +37,7 @@ Spawn `@platform-sdlc-planner` with:
 
 - Story issue number (`#<n>`)
 - Repo / Org / Project from `platform-context.md`
-- Direction: pull the Story issue (`gh issue view <n> --json title,body,labels,url`), identify the **parent Feature** via the native sub-issue link (`gh api graphql` on `issue.parent`, or the `Parent: #<n>` body line / `Feature` reference — drives branch routing), identify affected **Surfaces** from the title prefix (`[service]` / `[web]` / `[mobile]` / `[cross-cutting]`; ask via `AskUserQuestion` if missing), parse the acceptance-criteria checklist from the body, surface ambiguities via `AskUserQuestion`. Confirm requirements with the human before returning.
+- Direction: pull the Story issue (`gh issue view <n> --json title,body,labels,url`), identify the **parent Feature** via the native sub-issue link (`gh api graphql` on `issue.parent`, or the `Parent: #<n>` body line / `Feature` reference — used for sub-issue linking, board Parent grouping, and PR-body context; it does NOT affect branch routing), identify affected **Surfaces** from the title prefix (`[service]` / `[web]` / `[mobile]` / `[cross-cutting]`; ask via `AskUserQuestion` if missing), parse the acceptance-criteria checklist from the body, surface ambiguities via `AskUserQuestion`. Confirm requirements with the human before returning.
 - (Optional) Ask whether to draft 4 initiative MD files (`README.md`, `spec.md`, `test-plan.md`, `work-units.md`) under `docs/initiatives/<slug>/`. The planner writes these but doesn't commit yet — orchestrator commits at GATE #1 in Phase 2.
 
 ## Parse Planner Status Block
@@ -48,7 +48,7 @@ After the planner returns, extract from `📋 AGENT STATUS`:
 - `Files written` (initiative docs, if produced)
 - `Blockers` (if any)
 
-Save these to a tracker stub or to your working memory. They drive Phase 2 (branch strategy comes from Parent Feature).
+Save these to a tracker stub or to your working memory. They drive Phase 2. The Parent Feature is recorded for linking / board grouping / PR-body context only — the branch strategy is the same single-branch model (user branch off `develop`) regardless of whether a parent Feature exists.
 
 ## Next
 

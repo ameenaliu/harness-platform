@@ -7,7 +7,7 @@
 
 - Plan approved at GATE #1 (Phase 2 complete).
 - Task tracker exists in `ai/tasks/` with pending tasks.
-- User branch exists in the monorepo worktree.
+- User branch (cut off `develop`) exists in the monorepo worktree.
 - Task issues created as sub-issues of the Story and added to the Project board.
 
 ## Per-Task Loop (Sequential — single monorepo)
@@ -44,7 +44,7 @@ For each task in dependency order:
    ```
 8. **Parse reviewer status block** — check `Verdict`.
    - `APPROVED`:
-     - If worktree was used: `git merge --squash` the worktree branch into the user branch, then `git worktree remove <path>`. Commit the squash with the developer's primary commit message.
+     - If worktree was used: integrate the worktree branch into the user branch with `git merge --no-ff` (preserving the task's commits — do NOT squash), then `git worktree remove <path>`. When worktree is disabled, the developer already committed directly on the user branch — nothing to integrate. The develop-level history granularity is governed by the **PR Merge Method** setting (`platform-context.md`), NOT by this step.
      - Update tracker: T(n) → ✅ Done, set `Completed`, record commit hash.
      - GitHub sync: set the Task issue's Project **Status** → `In Review`.
      - Continue to T(n+1).

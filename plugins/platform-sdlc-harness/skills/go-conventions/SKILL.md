@@ -95,13 +95,13 @@ Record the concrete picks in the repo's service ADR; this is the harness's recom
 - **No `#<issue-id>` in the commit line** — GitHub linking happens in the PR body via `Closes #<n>`.
 - Reviewer Phase 0 enforces the Conventional-Commits regex.
 
-### Branching — two-tier model
+### Branching — single-branch model
 | When | Branch | PR target |
 |---|---|---|
-| Story has a parent Feature | `users/<user-slug>/<feature-slug>/<impl-slug>` | `features/<feature-slug>/main` |
-| Bug or no parent Feature | `users/<user-slug>/bugs/<impl-slug>` | `develop` |
+| Story (parent Feature is backlog structure only) | `users/<user-slug>/features/<impl-slug>` | `develop` |
+| Bug | `users/<user-slug>/bugs/<impl-slug>` | `develop` |
 
-`<user-slug>` = `<first-initial>_<surname>` lowercase (from `platform-context.md`).
+`<user-slug>` = `<first-initial>_<surname>` lowercase (from `platform-context.md`). The item Feature (Epic → Feature → Story → Task) is a backlog grouping — it does not map to a git branch.
 
 ### The hard build gate
 Every commit: **`go build ./...` succeeds AND `golangci-lint run` is clean.** This is the Go analog of the .NET zero-warnings rule — the reviewer runs it independently in Phase B, never trusting the developer's claim.

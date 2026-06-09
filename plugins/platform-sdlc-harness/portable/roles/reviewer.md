@@ -96,7 +96,7 @@ Phase 10 is **comment-only — never blocks the PR**. Even if you find CRITICAL 
 - **Stack-specific checklist**: for each touched surface, apply the per-stack PR checklist in its `conventions_skill` — the section named by the pack's `review_checklist_anchor` (`SERVICE (.NET)`, `SERVICE (Go)`, `WEB (React 19 Turbo + Vite)`, or `MOBILE (Expo)`). Those checklists cover layering / data + state patterns, framework idioms, instrumentation, and the stack's advisory-tool expectations — resolve the pack, then read its checklist rather than assuming a stack here.
 - **Build & tests**: builds clean per the pack's `build_gate`; tests green; coverage meets the pack's `coverage_threshold`.
 - **Security**: no secrets / connection strings / tokens in source; new config documented with defaults; auth/authz changes correct; Paystack/SendGrid/Firebase/OpenAI keys never client-side; `security-scan` (Semgrep SAST + Gitleaks + dependency CVEs) surfaces no new high/critical finding from the diff.
-- **Git hygiene**: working branch matches `^users/[a-z0-9_]+/(bugs|[a-z0-9-]+)/[a-z0-9-]+$`; PR target is `develop` (bugs / no parent Feature) or `features/<feature-slug>/main` (parent Feature exists); no merge commits from base onto the user branch (rebase instead); no build-breaking commits.
+- **Git hygiene**: working branch matches `^users/[a-z0-9_]+/(features|bugs)/[a-z0-9-]+$` (stories `users/<slug>/features/<impl>`, bugs `users/<slug>/bugs/<impl>`); PR base is `develop` for every Story and Bug (single-branch model — no feature branch); no merge commits from base onto the user branch (rebase instead); no build-breaking commits.
 
 ## Key rules
 

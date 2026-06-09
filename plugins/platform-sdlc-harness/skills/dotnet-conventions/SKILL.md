@@ -37,16 +37,16 @@ user-invocable: true
 - **NO `#<work-item-id>` in commit lines.** the project links Work Items via the PR's Work Items panel.
 - Enforced by Reviewer Phase 0 regex `^(feat|fix|chore|refactor|perf|docs|ci|test)\(([a-z]+([a-z]+)*)\):\s+[a-z].*$`.
 
-### Branching — the project two-tier model
+### Branching — single-branch model
 
 | When | Branch |
 |---|---|
-| Backlog Item has parent Feature | `features/<feature-slug>/master` (cut from `develop`) + `users/<user-slug>/<feature-slug>/<impl-slug>` (cut from feature/master). PR target = feature/master. |
-| Bug OR no parent Feature | `users/<user-slug>/bugs/<impl-slug>` (cut from `develop`). PR target = `develop`. |
+| Story (parent Feature is backlog structure only) | `users/<user-slug>/features/<impl-slug>` (cut from `develop`). PR target = `develop`. |
+| Bug | `users/<user-slug>/bugs/<impl-slug>` (cut from `develop`). PR target = `develop`. |
 
-`<user-slug>` = `<last-initial>_<first-name>` lowercase (e.g. `a_aliu`).
+`<user-slug>` = `<last-initial>_<first-name>` lowercase (e.g. `a_aliu`). The item Feature (Epic → Feature → Story → Task) is a backlog grouping — it does not map to a git branch.
 
-> If `.claude/CLAUDE.md` in the repo says `feature/<snake-case>` from develop, **that text is stale** — the live convention is the two-tier model above (as actually used in current PRs). Phase 8 (Architecture & Rules Reconciliation) is the place to clean up stale rules.
+> If `.claude/CLAUDE.md` in the repo says `feature/<snake-case>` from develop, **that text is stale** — the live convention is the single-branch model above (every Story/Bug branches off `develop`, PR base `develop`). Phase 8 (Architecture & Rules Reconciliation) is the place to clean up stale rules.
 
 ### Coverage thresholds (used by Reviewer Phase B + Tester Phase 6)
 

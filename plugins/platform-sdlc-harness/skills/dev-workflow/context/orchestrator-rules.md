@@ -24,7 +24,7 @@ These rules apply to ALL phases of the dev-workflow. Individual command files mu
    - Phase 10: `@platform-sdlc-reviewer` (post-PR review with GitHub PR comment posting)
 
 3. **The orchestrator MAY only:**
-   - Run git commands (branch creation, merge from worktrees, branch cleanup, push at GATE #3)
+   - Run git commands (branch creation off `develop`, `git merge --no-ff` integration from worktrees, branch cleanup, push at GATE #3)
    - Run `gh` / `gh api graphql` commands (Issue + sub-issue + Project board sync, PR creation)
    - Read task tracker files (to check status and present summaries)
    - Read plan files (to present summaries at human gates)
@@ -37,7 +37,7 @@ These rules apply to ALL phases of the dev-workflow. Individual command files mu
    - Relay feedback between agents (e.g., reviewer comments to developer)
    - Check for error markers in agent responses
    - Pass the human's clarifications/answers to agents as context
-   - Squash-merge worktree commits into the user branch after per-task reviewer approval
+   - Integrate worktree commits into the user branch via `git merge --no-ff` (preserving task commits — never `--squash`) after per-task reviewer approval
 
 4. **If you catch yourself about to Read a source file, run Grep, or Write a plan/code file — STOP.** Delegate that work to the appropriate agent instead.
 
@@ -54,7 +54,7 @@ These rules apply to ALL phases of the dev-workflow. Individual command files mu
 9. **Tracker is persistent state**: Update in the working tree after every status change. The tracker is **never committed**.
 10. **Holistic-mode reviewer output flows to tracker, not to a separate file**: append findings to `Phase 4 Holistic Review` / `Phase 7 Holistic Review` / `Phase 10 PR Review` sections.
 11. **Precise timestamps**: Record all tracker timestamps using `date -u +"%Y-%m-%dT%H:%M:%SZ"` — not rounded estimates.
-12. **Worktree mode from metadata**: Before launching any developer or tester agent, read `platform-context.md` and check the `Worktree` field. Pass `Worktree: enabled` or `Worktree: disabled` in the agent's REPO CONTEXT block. When `disabled`, the developer commits directly to the user branch (multiple atomic commits with Conventional Commits — no per-task squash needed since each commit is already labelled). The orchestrator skips the squash-merge step for disabled repos.
+12. **Worktree mode from metadata**: Before launching any developer or tester agent, read `platform-context.md` and check the `Worktree` field. Pass `Worktree: enabled` or `Worktree: disabled` in the agent's REPO CONTEXT block. When `enabled`, the orchestrator integrates each approved task worktree into the user branch with `git merge --no-ff` (preserving the task's commits). When `disabled`, the developer commits directly to the user branch (multiple atomic commits with Conventional Commits) and the orchestrator skips the integration step entirely.
 13. **Phase 10 reviewer GitHub writes are the ONLY exception** to the reviewer's read-only rule. The reviewer agent uses `gh api` PR review comments + `gh pr review` only in Phase 10 to post inline + summary PR comments. Source-code writes remain forbidden in every mode.
 
 ## Agent Response Contract
@@ -157,7 +157,7 @@ The numeric `<project-number>` is human-facing; `--project-id`, `--field-id`, an
 
 | Phase | Write | Story-input | Task-input |
 |------|-------|-------------|------------|
-| 1 — on entry | Ensure the Story's Project **Status** is at least `Ready`: read the current Status; if it is `Backlog` / `No Status`, set it to `Ready` via `gh project item-edit`. Read the Story's parent **Feature** via the sub-issue link (`gh api graphql` `issue.parent` / `trackedInIssues`, or the `Parent: #` body line) — drives branch routing. | One-shot Story Status flip + parent read | Skip (no parent Story) |
+| 1 — on entry | Ensure the Story's Project **Status** is at least `Ready`: read the current Status; if it is `Backlog` / `No Status`, set it to `Ready` via `gh project item-edit`. Read the Story's parent **Feature** via the sub-issue link (`gh api graphql` `issue.parent` / `trackedInIssues`, or the `Parent: #` body line) — used for board grouping + the PR-body `Part of #<feature>` link; it does NOT affect branch routing. | One-shot Story Status flip + parent read | Skip (no parent Story) |
 | 2 — after plan approval | `gh issue create --title "[<Surface>] <task-title>" --body-file <task-body> --label type:task --label surface:<surface>` per tracker row. Body matches the `task.yml` shape (see `skills/github-rendering/SKILL.md`). No Area Path / Iteration Path / custom fields. | Creates N Task issues; records each `#N` in tracker | Skip create; set every row's `Issue #` to the input Task |
 | 2 — after plan approval | For each new Task issue, attach it as a **sub-issue** of the Story via `gh api graphql addSubIssue` (resolve node IDs with `gh issue view <n> --json id -q .id`). Fallback if `addSubIssue` is unavailable: add a `Parent: #<story>` line to the Task body + set the Project **Parent** field. | Establishes hierarchy | Skip (no children created) |
 | 2 — after plan approval | `gh project item-add` each Task issue to the org Project, then `gh project item-edit` to set its **Surface** field. | Adds N items | Adds the one shared Task |
@@ -166,11 +166,11 @@ The numeric `<project-number>` is human-facing; `--project-id`, `--field-id`, an
 | 3 — after per-task reviewer APPROVED | Set T(n)'s Project **Status** → `In Review`. | One write per Task | One write total |
 | 6 — before each tester launch | Same Status flip → `In Progress` + assignee, for `T-TEST-<Surface>`. | One write per T-TEST Task issue # | n/a (T-TEST is always a new test task) |
 | 6 — after per-task reviewer approves test commit | Same Status flip → `In Review`, for `T-TEST`. | One write per Task | n/a |
-| 9 — after PR creation | The PR body (built by `create-pr.md`) carries `Closes #<story>` + `Part of #<task>` / `Closes #<task>` lines for each Task — GitHub links them automatically and closes them on merge. Set reviewers via `gh pr edit --add-reviewer`. Then set each Task's Project **Status** → `In Review`. | One write per Task | One write total |
+| 9 — after PR creation | The PR body (built by `create-pr.md`, PR base = `develop`) carries `Closes #<story>` + a `Closes #<task>` line for EVERY Task — GitHub links them and auto-closes them on merge into `develop` — plus ONE `Part of #<feature>` link to the parent Feature (which stays open). Set reviewers via `gh pr edit --add-reviewer`. Then set each Task's Project **Status** → `In Review`. | One write per Task | One write total |
 | 9 — after PR creation | `gh issue comment <story> --body-file <summary>` with tracker summary + PR URL. | Target = Story | Target = input Task |
 | 10 — after holistic post-PR review | For each `[S<n>]`/`[R<n>]` finding, post an inline PR review comment via `gh api repos/{owner}/{repo}/pulls/{n}/comments` (with `path` + `line` / `start_line`); then one summary review via `gh pr review <n> --comment`. (This write is performed BY THE REVIEWER, not the orchestrator — record comment IDs in tracker from the reviewer's status block.) | Reviewer posts; orchestrator records | Reviewer posts; orchestrator records |
 
-**Final move of Tasks/Story → `Done` is post-merge.** Issues are **closed** (not a Status value) automatically when the PR merges via the `Closes #` links. The harness never auto-completes the board; the human moves items to `Done` after the merge if the Project workflow doesn't do it on close.
+**Tasks + Story close automatically on merge into `develop`.** Issues are **closed** (not a Status value) by the `Closes #` links the moment the PR merges into `develop` — which works because `develop` is the repo's **GitHub default branch** (init-workspace verifies this; closing keywords only fire on the default branch). The parent **Feature** is linked via `Part of #` and stays open. The board move to **Status: Done** is then automatic, handled by the Project's "Item closed → Done" workflow (enabled at init-workspace) — not a manual step.
 
 **Status vocabulary validated at init-workspace time** against the Project's Status field options, so runtime writes are guaranteed valid. Do **not** hardcode option IDs in any phase command — always resolve them from the Project field list and read the human-readable status name (`Ready` / `In Progress` / `In Review`) from this table.
 

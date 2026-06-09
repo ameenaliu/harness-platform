@@ -15,10 +15,10 @@
 ### Orchestrator (the dev-workflow skill main thread)
 - **Delegation** via the Agent/Task tool. The repo is a single monorepo so phases are sequential — `run_in_background` is NOT used.
 - Read `.claude/context/platform-context.md` → `Repo`, GitHub `Org` / `Repo` / `Project number`, branch names, and the `Worktree: enabled | disabled` flag; pass them in each agent's REPO CONTEXT block.
-- **Worktree merge**: after a per-task reviewer APPROVES a worktree task, squash-merge the worktree commits into the user branch (`git merge --squash`), one clean commit. Skip when `Worktree: disabled` (commits land directly on the user branch).
+- **Worktree merge**: after a per-task reviewer APPROVES a worktree task, integrate the worktree commits into the user branch with `git merge --no-ff` (preserve the task's commits — never `--squash`). Skip when `Worktree: disabled` (commits land directly on the user branch). The `develop` history granularity is governed by the **PR Merge Method** (`platform-context.md`), not here.
 - **GitHub sync** via the `gh` CLI (`gh issue`, `gh pr`, `gh project`, `gh api`, `gh api graphql`) — there is no MCP server. `gh` must be authenticated (`repo`, `project`, `read:org` scopes). Org / repo / project number / Status field options from `platform-context.md`; never hardcode org/repo or state literals. Best-effort: on failure emit `⚠️ GitHub sync failed at <step>: <error>. Continuing workflow.` and proceed.
 - **Task issue creation**: `gh issue create --title "[<surface>] ..." --label type:task --label surface:<surface> --body "..."` (Markdown body per `github-rendering`), then attach as a sub-issue of the Story via `gh api graphql addSubIssue` (fallback: `type:task` label + `Parent: #<story>` body line). Add to the Project (`gh project item-add`) and set the Surface + Status fields (`gh project item-edit`).
-- **PR creation** via `gh pr create --base <target> --head <user-branch> --title "..." --body "..."`: title from the tracker (a Conventional Commit summary), body from the Suggested PR Description in the Phase 7 review report and carrying `Closes #<story>` + `Part of #<task>` / `Closes #<task>` lines for each Task. Set reviewers via `gh pr edit --add-reviewer`.
+- **PR creation** via `gh pr create --base develop --head <user-branch> --title "..." --body "..."` (base is always `develop`): title from the tracker (a Conventional Commit summary), body from the Suggested PR Description in the Phase 7 review report and carrying `Closes #<story>` + a `Closes #<task>` for EVERY Task (all auto-close on merge into `develop`) + ONE `Part of #<feature>` link to the parent Feature (stays open). Set reviewers via `gh pr edit --add-reviewer`.
 - **Subagent file-op errors**: after any planner invocation, scan for `⚠️ FILE OPERATION FAILED` / `⚠️ FILE OPERATION BLOCKED`; correct the path and re-invoke, or pause and report to the human.
 - Full GitHub sync points and tracker-update transition table live in `skills/dev-workflow/context/orchestrator-rules.md`.
 
@@ -26,7 +26,7 @@
 - **Write with the `Write`/`Edit` tools only** — never `Bash` (`echo`/`cat`/`tee`/heredocs). After every write, verify by reading the file back; retry once on failure, then report.
 - **Allowed write paths**: `docs/initiatives/<slug>/{execution-plan.md,work-units.md,test-plan.md,spec.md,README.md}` (committed initiative docs) and `ai/tasks/<YYYY-MM-DD>_<story-issue-number>_<slug>.md` (local tracker, never committed). Do not write elsewhere.
 - **Locate the initiative folder** by grepping `README.md` files under `docs/initiatives/` for the Story issue number; create the folder from a kebab-case slug if absent.
-- **Parent Feature lookup** — `gh api graphql` `issue(number:N){ parent { number title } }` (native sub-issue) or, in fallback mode, read the `Parent: #<n>` body line / Project Parent field. Record the parent's number + title for the branch strategy.
+- **Parent Feature lookup** — `gh api graphql` `issue(number:N){ parent { number title } }` (native sub-issue) or, in fallback mode, read the `Parent: #<n>` body line / Project Parent field. Record the parent's number + title for sub-issue linking, board grouping, and the PR-body `Part of #<feature>` link — NOT for branch routing (single-branch model).
 - GitHub reads via the `gh` CLI (`gh issue view`, `gh api`, `gh api graphql`).
 - On any file error report `⚠️ FILE OPERATION FAILED` with operation, target path, error, and action taken — never swallow it.
 
@@ -43,10 +43,10 @@
   git -C "<REPO_PATH>" worktree add "$WORKTREE_PATH" -b "$WORKTREE_BRANCH" "<user-branch>"
   ```
 - **WEB/MOBILE cache forwarding** (after creating the worktree, to avoid a 10-min install): copy `.yarn`, `node_modules`, `.pnp.cjs`, `.pnp.loader.mjs` (Yarn) or `node_modules`, `.pnpm-store` (pnpm) from `<REPO_PATH>` into `$WORKTREE_PATH`. Do NOT run `yarn`/`pnpm install` unless a build fails on missing deps.
-- Commits go to the **worktree branch** with Conventional Commits (`<type>(<surface>): <description>`); the orchestrator squash-merges them into the user branch after review approval (multiple commits per task are fine, one squash per task).
+- Commits go to the **worktree branch** with Conventional Commits (`<type>(<surface>): <description>`); the orchestrator integrates them into the user branch via `git merge --no-ff` after review approval (multiple commits per task are fine — they are preserved, never squashed).
 - **Git error fallback**: if worktree creation fails (e.g. `could not lock config file .git/config: File exists` on Windows, or Husky errors on first commit), report `Worktree: failed (<error>)` and `Next action: "worktree failed — retry without isolation"`; the orchestrator re-invokes you to work directly on the user branch.
 - **When `Worktree: disabled`**: do NOT create a worktree; `cd "<REPO_PATH>"` and commit directly on the user branch, one commit per task. Report `Worktree: not used (disabled by repo config)`.
-- Tooling fields in your STATUS block (`Surface(s)`, `Worktree`, `Worktree branch`, `Commit(s)`) are required — the orchestrator uses them to route the reviewer and squash-merge.
+- Tooling fields in your STATUS block (`Surface(s)`, `Worktree`, `Worktree branch`, `Commit(s)`) are required — the orchestrator uses them to route the reviewer and to integrate the worktree (`git merge --no-ff`).
 
 ### Reviewer
 - **Per-task / holistic modes (Phases 3, 4, 6, 7)**: `disallowedTools: Write, Edit` enforces read-only on source code. You cannot modify any file, including the tracker. The orchestrator updates the tracker from your verdict.

@@ -16,11 +16,12 @@ Present a summary to the human:
 
 ```
 Ready to open PR:
-  Source branch: users/<slug>/<feat>/<impl>  (or users/<slug>/bugs/<impl>)
-  Target branch: features/<feat>/main         (or develop)
+  Source branch: users/<slug>/features/<impl>          (or users/<slug>/bugs/<impl>)
+  Target branch: develop
   Title: <type>(<surface>): <conventional-commit summary>
-  Closes: #<story-number>
-  Part of / Closes Tasks: #<task1>, #<task2>, …
+  Closes: #<story-number>, #<task1>, #<task2>, …   (auto-close on merge into develop)
+  Part of: #<feature> (parent Feature — stays open)
+  Merge Method: <PR Merge Method from platform-context.md — merge | squash | rebase>
   Reviewers: <from platform-context.md Reviewers, matched by Affected Surfaces>
 
 Phase 4 findings: X CRITICAL, Y WARNING, Z SUGGESTION
@@ -30,6 +31,8 @@ Phase 7 findings: A CRITICAL, B WARNING, C SUGGESTION
 Suggested PR Description:
 <paste the Phase 7 reviewer's Suggested PR Description>
 ```
+
+The human performs the merge (or runs `gh pr merge --<method>` with the configured **PR Merge Method**). The merge method affects only the commit history on `develop` — it does **NOT** affect issue closing, which is driven by the `Closes #` keywords in the PR description, not by commits.
 
 Wait for explicit `APPROVED` reply. If the human requests changes to the title/description/reviewers, accept and re-present. If the human wants to fix something in code first, loop back to Phase 3 with their notes.
 
@@ -43,19 +46,20 @@ On `APPROVED`:
    ```
    (Prompts for confirmation — `git push` is intentionally NOT pre-approved in `settings.local.json`.)
 
-2. **Build the PR body file** — start from the Phase 7 Suggested PR Description, then append the GitHub linking trailer. `Closes #<story>` auto-closes the Story on merge; each Task gets a `Part of #<task>` line (or `Closes #<task>` to auto-close the Task too):
+2. **Build the PR body file** — start from the Phase 7 Suggested PR Description, then append the GitHub linking trailer. Because the PR base is `develop` (the repo default branch), GitHub's closing keywords fire on merge: emit `Closes #<story>` AND `Closes #<task>` for EVERY task, so the Story and all its Tasks auto-close on merge. Add ONE `Part of #<feature>` line linking the parent Feature for context — do **not** `Closes` the Feature (a Feature has multiple stories; it stays open):
    ```markdown
    <Phase 7 Suggested PR Description, or human-edited version>
 
    ---
 
    Closes #<story-number>
-
-   Part of #<task1>
-   Part of #<task2>
+   Closes #<task1>
+   Closes #<task2>
    …
+
+   Part of #<feature>
    ```
-   Write this to a temp file (e.g. `ai/tasks/.pr-body-<story>.md`, uncommitted). **Never add an AI/Claude attribution line** (no `🤖 Generated with Claude Code`, no `Co-Authored-By: Claude/Anthropic`) to the PR body — hard rule, blocked by `attribution-guard`.
+   (Omit the `Part of #<feature>` line if the Story has no parent Feature.) Write this to a temp file (e.g. `ai/tasks/.pr-body-<story>.md`, uncommitted). **Never add an AI/Claude attribution line** (no `🤖 Generated with Claude Code`, no `Co-Authored-By: Claude/Anthropic`) to the PR body — hard rule, blocked by `attribution-guard`.
 
 3. **Create the PR** via `gh pr create`:
    ```bash
@@ -85,7 +89,7 @@ On `APPROVED`:
    gh project item-edit --project-id <project-id> --id "$item_id" \
      --field-id <status-field-id> --single-select-option-id <in-review-option-id>
    ```
-   (No effort / scheduling fields — GitHub has none. The `Closes #` links handle issue closure on merge.)
+   (No effort / scheduling fields — GitHub has none. The `Closes #` links handle issue closure automatically on merge into `develop`; the Project "Item closed → Done" workflow then moves them to **Status: Done**.)
 
 6. **Post a tracker-summary comment on the Story**:
    ```bash
@@ -111,4 +115,4 @@ Proceed to Phase 10 (`post-pr-review`) — the post-PR holistic review with GitH
 ## Notes
 
 - `git push` confirmation is intentional — see `settings.local.json`. If you're sure, type `y` at the prompt.
-- The Story + Tasks **close automatically** when the PR merges (via the `Closes #` lines). The final move to Project **Status: Done** is post-merge — the harness never auto-completes the board.
+- The Story + Tasks **close automatically** when the PR merges into `develop` (via the `Closes #` lines). This requires `develop` to be the repo's **GitHub default branch** — GitHub only fires closing keywords when they reach the default branch (init-workspace verifies this). The parent **Feature** is linked via `Part of #` and stays open. The move to Project **Status: Done** is handled automatically by the Project's "Item closed → Done" workflow (configured at init-workspace), not manually.
