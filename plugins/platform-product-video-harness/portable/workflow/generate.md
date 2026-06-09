@@ -5,7 +5,7 @@ Drive a video project from `assets/` (+ optional `brief.md` and `sample.mp4`) to
 **Usage**: `<command> <project-folder>` where `<project-folder>` is a path under `<ProductVideos>/projects/`.
 
 ```
-/platform-product-video-harness:generate projects/2026-05-25_inventory-launch
+/platform-product-video-harness:generate projects/2026-05-25_product-launch
 ```
 
 Always read the workspace config (`<ProductVideos>/.claude/context/platform-video-context.md`) and the runtime tracker (`<ProductVideos>/ai/video-runs/<slug>.md`) before acting; resume from recorded state.

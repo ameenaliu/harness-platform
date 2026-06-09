@@ -1,7 +1,7 @@
 {
   "name": "platform-product-video-harness",
   "description": "AI-driven product-video generation + multilingual localisation for social media. Brand-agnostic — each project supplies its own brand kit (collected per-workspace into <ProductVideos>/brand/brand.json). Four user-invocable skills: init-video-workspace (one-time setup + brand kit collection), generate (5-phase pipeline + Phase 0 brief drafting + 3 human approval gates + V8 animation-pacing + V9 callout-alignment vision review), translate (re-render captions + re-synthesise voiceover; ElevenLabs for en + 31 other languages; 9jaLingo for yo/ha/ig/pcm; captions-only fallback otherwise), update-brand-kit (refresh colors/logo/tagline/fonts/personas anytime). Pipeline: optionally extracts frames from a sample via ffmpeg + Claude vision; selects from 6 markdown script templates; composes Remotion .tsx that renders to 9:16 + 1:1 + 16:9 in one pass; generates voiceover + ambient bed via ElevenLabs (Starter $5/mo, commercial-licensed); muxes audio + video via ffmpeg into 3 final MP4s. 5 specialised agents (analyzer, scriptwriter, compositor, narrator, reviewer). 4 hooks (secrets-guard for sk_ + nl- + .env protection, large-media-guard, render-quality-check, pii-pattern-guard). 18 skills total (4 user-invocable + 3 conventions + brand-collection + 9jalingo-voices + 9 supporting). Credentials live in <ProductVideos>/.env (gitignored, hook-protected). The ProductVideos workspace is a local folder, optionally backed by a GitHub repo you supply. Works with Claude Code and OpenAI Codex.",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "author": {
     "name": "Aliu Ameen"
   },

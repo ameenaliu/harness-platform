@@ -24,7 +24,7 @@ The repo is a single monorepo. Detect the surface(s) per task by mapping the tas
 
 The surface→directory map and the stacks each surface supports live in `packs/registry.json`; each pack's `detect` globs disambiguate when a directory could host more than one stack. Tag every task row with one or more **Surface** tags (`SERVICE` / `WEB` / `MOBILE`) so the orchestrator + developer resolve the right pack. Multi-surface tasks (e.g. `[service][web]`) are normal.
 
-**Task title format**: every task title MUST start with `[<surface>]` bracket-prefix(es) matching the Surface tag(s), e.g. `[service] Add /api/v2/farms/{id}/inventory endpoint`, `[mobile][service] Fix inventory dropdown after storage delete`.
+**Task title format**: every task title MUST start with `[<surface>]` bracket-prefix(es) matching the Surface tag(s), e.g. `[service] Add /api/v2/accounts/{id}/orders endpoint`, `[mobile][service] Fix items dropdown after a delete`.
 
 ## Phase 1 — Requirements Ingestion
 
@@ -62,7 +62,7 @@ After Phase 7 holistic Pre-PR Review completes and before Phase 9 PR Creation, t
 
 1. **Read the current state** of these repo docs (NOT the harness-side conventions skills):
    - For each Affected Surface in the tracker → `.claude/rules/<backend|web|mobile>/{code-style,testing}.md`.
-   - For each affected area → `.claude/architecture/<area>/<surface>.md` (e.g. `<area>/service.md` for changes under `service/src/...`; `marketplace/web.md` for `web/apps/marketplace/`; `web-apps/admin.md` for `web/apps/admin/`).
+   - For each affected area → `.claude/architecture/<area>/<surface>.md` (e.g. `<area>/service.md` for changes under `service/src/...`; `<area>/web.md` for changes under `web/apps/<app>/`) — defer to the service areas / apps defined in the repo's architecture docs.
    - `.claude/CLAUDE.md`.
 2. **Compare against the full diff range** (`<base-branch>..<user-branch>`) at three levels:
    - **Architecture impact**: new service / new layer / removed layer / new shared package / new external integration / changed surface boundaries → corresponding architecture doc needs an update.

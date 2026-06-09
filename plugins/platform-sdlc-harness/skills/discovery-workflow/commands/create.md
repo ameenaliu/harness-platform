@@ -20,8 +20,8 @@ wiring. Read every config value (`Org`, `Repo`, project number/owner) from
 1. **Read the approved tree** from `ai/discoveries/<slug>.md`, and `Org` / `Repo` / project number/owner from `.claude/context/platform-context.md`. Define a `log()` helper that emits `⚠️` warnings to the console and appends to the tracker stub.
 
 2. **Sanity check** before any write (regexes from `skills/github-rendering/SKILL.md` § Title-prefix validation):
-   - Every Epic title matches `^E\d+:\s+\S` (e.g. `E1: Disease Detection v1`).
-   - Every Feature title matches `^F\d+\.\d+:\s+\S` (e.g. `F1.2: Inference + result UI`).
+   - Every Epic title matches `^E\d+:\s+\S` (e.g. `E1: User Onboarding v1`).
+   - Every Feature title matches `^F\d+\.\d+:\s+\S` (e.g. `F1.2: Order list + detail UI`).
    - Every Story title matches `^S\d+\.\d+\.\d+:\s+\[(service|web|mobile|cross-cutting)\](\[(service|web|mobile|cross-cutting)\])*\s+\S` (e.g. `S1.2.3: [mobile] Result display screen`).
    - Hierarchical numbering is consistent: every `F<e>.*` lives under `E<e>`; every `S<e>.<f>.*` lives under `F<e>.<f>`.
    - Every Feature has at least one Story; every Story has a parent Feature; every Feature has a parent Epic.

@@ -33,7 +33,7 @@ Example transformations:
 | Voiceover (longer) | Caption (shorter) |
 |---|---|
 | "<Brand> tracks every transaction, syncs across devices, and gives you live insights." | "Track, sync, see insights — live." |
-| "I used to spend hours every Sunday tallying my farm sales." | "Sundays used to mean hours of tallying." |
+| "I used to spend hours every Sunday reconciling my sales." | "Sundays used to mean hours of reconciling." |
 | "Download <Brand> on iOS and Android today." | "Get <Brand> on iOS + Android" |
 
 If the original voiceover already fits in ≤ 14 words, use it verbatim.

@@ -69,7 +69,7 @@ Score the Story across the dimensions below. For each, assign a flag (🔴 criti
 
 ### Evaluation rules
 
-**Be specific, not generic.** "Acceptance criteria could be improved" is useless. Instead: *"AC #2 says 'transactions are saved' — not testable. Suggest: 'Given a logged-in user with an active subscription, When they submit a payment via the payment-provider webhook, Then the transaction is persisted via the service Outbox and a confirmation push notification is sent.'"*
+**Be specific, not generic.** "Acceptance criteria could be improved" is useless. Instead: *"AC #2 says 'transactions are saved' — not testable. Suggest: 'Given a logged-in user with an active subscription, When they submit a payment via the payment-provider webhook, Then the transaction is persisted (via the service's transactional-messaging path if it uses one) and a confirmation push notification is sent.'"*
 
 **Suggest, don't just critique.** Every 🔴 or 🟡 flag must include a concrete improvement suggestion. Draft replacement text where possible (titles, AC, body sections).
 

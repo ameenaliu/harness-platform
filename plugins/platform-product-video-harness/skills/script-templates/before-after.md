@@ -48,7 +48,7 @@
 - Hook in first 3s ✓ (Scene 1 = 3.0s).
 - CTA verb in Scene 4.
 - The "BEFORE → AFTER" hard cut is the key beat — no slow dissolves; instant transition for impact.
-- "AFTER" reveal MUST show the actual the product UI / outcome, not an abstract metaphor.
+- "AFTER" reveal MUST show the actual product UI / outcome, not an abstract metaphor.
 
 ## Variables checklist
 

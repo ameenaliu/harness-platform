@@ -86,7 +86,7 @@ Walks through:
 Inside your `ProductVideos` workspace:
 
 ```bash
-mkdir projects/2026-05-25_inventory-launch
+mkdir projects/2026-05-25_product-launch
 ```
 
 Drop in:
@@ -100,12 +100,12 @@ Drop in:
 ### 3. Generate
 
 ```text
-/platform-product-video-harness:generate projects/2026-05-25_inventory-launch
+/platform-product-video-harness:generate projects/2026-05-25_product-launch
 ```
 
 If `brief.md` doesn't exist, **Phase 0** kicks in first: a short Q&A (audience / tone / CTA / goal / optional notes) drafts it for you, you confirm, and the workflow continues. If `brief.md` already exists, Phase 0 is skipped.
 
-After Phase 0, the workflow walks the 5 phases with 3 human approval gates. Final output: 3 MP4s in `projects/2026-05-25_inventory-launch/out/`:
+After Phase 0, the workflow walks the 5 phases with 3 human approval gates. Final output: 3 MP4s in `projects/2026-05-25_product-launch/out/`:
 - `9-16.mp4` (Reels, TikTok, YouTube Shorts)
 - `1-1.mp4` (Instagram Feed)
 - `16-9.mp4` (YouTube long-form, LinkedIn)

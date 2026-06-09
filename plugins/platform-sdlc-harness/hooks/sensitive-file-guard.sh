@@ -9,7 +9,7 @@
 #   Blocks writes/edits to potentially sensitive files: .env / .env.* / .secret /
 #   .key / .pfx / .pem / serviceAccount*.json / appsettings.{Production,Local}.json.
 #   Catches catastrophic failure modes where the model would accidentally commit
-#   credentials to the this repo.
+#   credentials to this repo.
 # ---
 #
 # Exit 0 = allow, Exit 2 = block (stderr fed back to Claude as error)
@@ -64,6 +64,6 @@ else
 fi
 
 echo "BLOCKED: Refusing to write a potentially sensitive file: $FILE_PATH ($REASON)" >&2
-echo "Credentials, keys, and secrets must never be committed to the this repo." >&2
+echo "Credentials, keys, and secrets must never be committed to this repo." >&2
 echo "Use Azure Key Vault / EAS secrets / .env (gitignored) / dotnet user-secrets instead." >&2
 exit 2

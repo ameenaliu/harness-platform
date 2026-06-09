@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.1 — De-genericize demo theming
+
+Removed FarmManagement product theming from examples so the video harness is brand-neutral: `inventory-launch` / `InventoryLaunch` → `product-launch` / `ProductLaunch`, "smallholder farmer" → "small business owner", "Meet Inventory" → "Meet your product", farm-sales testimonial captions → neutral. A stray `master` push-trigger → `main`. **Kept** 9jaLingo as an *optional* Nigerian-language (yo/ha/ig/pcm) TTS provider with captions-only fallback — a real feature, just framed as optional.
+
 ## 1.0.0 — Brand-agnostic, GitHub-native product-video harness
 
 Initial release of `platform-product-video-harness` — a Claude Code + OpenAI Codex harness that generates production-grade product videos (Remotion + ElevenLabs) for social media. Brand-agnostic and GitHub-native: designed to be installed once from the `harness-platform` marketplace and used across any number of projects, each supplying its own brand kit.

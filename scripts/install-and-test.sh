@@ -2,7 +2,7 @@
 # Installs plugins from the local marketplace via Claude Code CLI,
 # verifies they resolve without conflicts, then cleans up.
 #
-# In a PR build (SYSTEM_PULLREQUEST_TARGETBRANCH set), only plugins whose
+# In a PR build (GITHUB_BASE_REF set), only plugins whose
 # files changed under plugins/ are installed. If no plugin folders changed,
 # the install step is skipped entirely.
 #
@@ -79,7 +79,7 @@ mapfile -t ALL_PLUGINS < <(jq -r '.plugins[].name' "$MARKETPLACE_JSON")
 declare -a PLUGINS
 PLUGINS=("${ALL_PLUGINS[@]}")
 
-TARGET_BRANCH=${SYSTEM_PULLREQUEST_TARGETBRANCH:-}
+TARGET_BRANCH=${GITHUB_BASE_REF:-}
 if [ -n "$TARGET_BRANCH" ]; then
     TARGET_BRANCH=${TARGET_BRANCH#refs/heads/}
     BASE="origin/$TARGET_BRANCH"

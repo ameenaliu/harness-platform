@@ -52,7 +52,7 @@ if not prompt:
 checks = [
     (
         len(re.findall(r"\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\b", prompt)) >= 10,
-        "10+ UUIDs detected — looks like a farmer or transaction batch",
+        "10+ UUIDs detected — looks like a user or transaction batch",
     ),
     (
         len(set(re.findall(r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}", prompt))) >= 5,
@@ -121,7 +121,7 @@ case "$VERDICT" in
         echo "$TS pii-pattern-guard blocked: $REASON" >> "$LOG_DIR/policy-violations.log"
 
         echo "BLOCKED by pii-pattern-guard: $REASON." >&2
-        echo "Remove the sensitive content from your prompt and rephrase. Reference data structurally (\"a farmer record\") rather than pasting values." >&2
+        echo "Remove the sensitive content from your prompt and rephrase. Reference data structurally (\"a record\") rather than pasting values." >&2
         exit 2
         ;;
     *)

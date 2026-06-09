@@ -2,7 +2,7 @@
 # Detects naming conflicts (commands, agents, skills) across all installed plugins.
 # Claude Code loads all plugins simultaneously — duplicate names silently overwrite.
 #
-# In a PR build (SYSTEM_PULLREQUEST_TARGETBRANCH set), only conflicts involving
+# In a PR build (GITHUB_BASE_REF set), only conflicts involving
 # a changed plugin fail the build. Pre-existing conflicts between unchanged
 # plugins are warnings.
 #
@@ -27,7 +27,7 @@ fi
 
 # ── Detect changed plugins via git (PR builds only) ──────────────────────────
 declare -a CHANGED_PLUGINS=()
-TARGET_BRANCH=${SYSTEM_PULLREQUEST_TARGETBRANCH:-}
+TARGET_BRANCH=${GITHUB_BASE_REF:-}
 
 if [ -n "$TARGET_BRANCH" ]; then
     TARGET_BRANCH=${TARGET_BRANCH#refs/heads/}

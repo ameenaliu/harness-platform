@@ -101,7 +101,7 @@ If no command is specified, run the full pipeline: D1 → D2 → D3.
 - **No code, no tests, no commits to the product repo.** Discovery only writes to GitHub via `gh` and (optionally) writes a local-only tracker stub at `ai/discoveries/<slug>.md` for session resume.
 - **Tree depth**: Epic → Feature → Story only. Do NOT create Tasks at discovery time — Tasks are created by `/dev-workflow` Phase 2 from the approved plan.
 - **Surface labels**: every Story title MUST carry a `[service]` / `[web]` / `[mobile]` / `[cross-cutting]` prefix (or combination), and every Story Issue carries a matching `surface:<surface>` label. If unsure, ask via `AskUserQuestion` in D2.
-- **One Epic per cohesive capability.** Multiple Epics only if the idea genuinely spans separate capability surfaces (e.g. "Disease detection" is one Epic; "Disease detection + Subscription billing" is two).
+- **One Epic per cohesive capability.** Multiple Epics only if the idea genuinely spans separate capability surfaces (e.g. "Order processing" is one Epic; "Order processing + Subscription billing" is two).
 - **Sub-command semantics**:
   - `explore` ends at "DONE EXPLORING"; writes tracker stub.
   - `decompose` reads tracker stub, produces tree, allocates E/F/S numbers, waits at GATE for APPROVED, persists approved tree to stub.

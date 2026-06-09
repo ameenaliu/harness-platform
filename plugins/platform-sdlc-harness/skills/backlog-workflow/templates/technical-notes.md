@@ -24,13 +24,13 @@ Adapt the concrete component names below to the repo's actual conventions in `.c
 - `service/<service>/.../<File>.cs:<line>` — <what changes / what to add>
 - `service/<service>/.../<File>.cs:<line>` — <what changes / what to add>
 
-**Patterns this will use**:
-- [MediatR CQRS Command/Query + Handler — name them]
-- [Event handler — must be idempotent, locate in `<service>.Worker/Handlers/`]
+**Patterns this will use** (defer to `.claude/rules/backend/*` for what the service actually uses):
+- [Command/Query + Handler — if the service uses CQRS (e.g. MediatR); name them]
+- [Event handler — must be idempotent, locate in `<service>.Worker/Handlers/`; if the service uses a message/worker layer]
 - [Background job — locate in `<service>.Worker/Jobs/`]
-- [Outbox pattern — write event in same DB transaction as state change]
+- [Outbox / transactional messaging — if the service uses it; write event in same DB transaction as state change]
 - [Cache pattern — get-with-factory + invalidation by pattern]
-- [AutoMapper profile addition in `<service>.Core/<Feature>Mappings.cs`]
+- [Mapping profile — if the service uses a mapper (e.g. AutoMapper) in `<service>.Core/<Feature>Mappings.cs`]
 - [EF entity configuration in `<service>.EFData/Configurations/`]
 - [Migration needed — additive / breaking]
 
@@ -83,7 +83,7 @@ Adapt the concrete component names below to the repo's actual conventions in `.c
 
 **Patterns this will use**:
 - Data hooks: `useFetchGroupedData<T>` / `useFetchDetailData` / `useFetchEditData` / `useMutateData`
-- State slice + persistence: [secured (SecureStore) | farm (on-device store) | feature (cleared on context switch) | global | user-local | non-persisted (in-memory)]
+- State slice + persistence: follow the repo's `.claude/rules/mobile/code-style.md` for state/persistence layers (e.g. secured / global / non-persisted)
 - Service: interface + class injecting the rest-service abstraction with static cache key methods
 - Forms: React Hook Form + Yup with co-located `validation.ts`
 - Lists: the repo's FlashList wrapper — NEVER raw `FlatList`

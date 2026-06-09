@@ -38,7 +38,7 @@ One component, three `<Composition>` registrations, three render calls. Each ren
 
 ```tsx
 import { Composition } from 'remotion';
-import { InventoryLaunch } from './inventory-launch';
+import { ProductLaunch } from './product-launch';
 
 const DURATION_FRAMES = 900;   // 30s @ 30fps; from script.md
 const FPS = 30;
@@ -48,24 +48,24 @@ export const RemotionRoot: React.FC = () => (
     {/* ... other compositions ... */}
 
     <Composition
-      id="inventory-launch-9-16"
-      component={InventoryLaunch}
+      id="product-launch-9-16"
+      component={ProductLaunch}
       durationInFrames={DURATION_FRAMES}
       fps={FPS}
       width={1080}
       height={1920}
     />
     <Composition
-      id="inventory-launch-1-1"
-      component={InventoryLaunch}
+      id="product-launch-1-1"
+      component={ProductLaunch}
       durationInFrames={DURATION_FRAMES}
       fps={FPS}
       width={1080}
       height={1080}
     />
     <Composition
-      id="inventory-launch-16-9"
-      component={InventoryLaunch}
+      id="product-launch-16-9"
+      component={ProductLaunch}
       durationInFrames={DURATION_FRAMES}
       fps={FPS}
       width={1920}

@@ -57,7 +57,7 @@ interface Props {
   // shared across aspect ratios; each <Composition> wires defaults
 }
 
-export const InventoryLaunch: React.FC<Props> = () => {
+export const ProductLaunch: React.FC<Props> = () => {
   // const frame = useCurrentFrame();
   // const { width, height, fps, durationInFrames } = useVideoConfig();
 
@@ -97,31 +97,31 @@ Edit `compositions/Root.tsx` to register **three** `<Composition>`s for this vid
 
 ```tsx
 import { Composition } from 'remotion';
-import { InventoryLaunch } from './inventory-launch';
+import { ProductLaunch } from './product-launch';
 
 export const RemotionRoot: React.FC = () => (
   <>
     {/* ... existing compositions ... */}
 
     <Composition
-      id="inventory-launch-9-16"
-      component={InventoryLaunch}
+      id="product-launch-9-16"
+      component={ProductLaunch}
       durationInFrames={900}    // 30s @ 30fps
       fps={30}
       width={1080}
       height={1920}
     />
     <Composition
-      id="inventory-launch-1-1"
-      component={InventoryLaunch}
+      id="product-launch-1-1"
+      component={ProductLaunch}
       durationInFrames={900}
       fps={30}
       width={1080}
       height={1080}
     />
     <Composition
-      id="inventory-launch-16-9"
-      component={InventoryLaunch}
+      id="product-launch-16-9"
+      component={ProductLaunch}
       durationInFrames={900}
       fps={30}
       width={1920}

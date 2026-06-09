@@ -15,7 +15,7 @@
 - **Voiceover** (≤ 30 chars):
   > "{{hook_line}}"
   >
-  > _Example: "Farming, finally simple."_
+  > _Example: "Your business, finally simple."_
 - **Caption**: `"{{hook_line}}"`
 
 ### Scene 2 — FEATURE 1 (3.0s → 11.0s, 8.0s)

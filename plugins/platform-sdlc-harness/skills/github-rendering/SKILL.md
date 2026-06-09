@@ -35,8 +35,8 @@ Every issue title MUST carry a hierarchical numbering prefix so the parent–chi
 
 | Type | Format | Example |
 |---|---|---|
-| Epic | `E<e>: <title>` | `E1: Disease Detection v1` |
-| Feature | `F<e>.<f>: <title>` | `F1.2: Inference + result UI` |
+| Epic | `E<e>: <title>` | `E1: User Onboarding v1` |
+| Feature | `F<e>.<f>: <title>` | `F1.2: Order list + detail UI` |
 | Story | `S<e>.<f>.<s>: [<Surface>] <title>` | `S1.2.3: [mobile] Result display screen` |
 | Task | `[<Surface>] <title>` (no number — Tasks are leaf sub-issues of a Story) | `[mobile] Wire result API call` |
 

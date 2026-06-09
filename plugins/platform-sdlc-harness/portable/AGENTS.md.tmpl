@@ -58,13 +58,13 @@ Every Story AND Bug cuts ONE user branch off `{{INTEGRATION_BRANCH}}` (the Integ
 ```
 
 - `<type>` ∈ `feat` | `fix` | `refactor` | `perf` | `chore` | `docs` | `ci` | `test` | `build`.
-- `<surface>` is one or more comma-separated surface tags: `service`, `web`, `mobile` (finer scopes like `service/adaptive` allowed). Multi-surface example: `feat(service,mobile): add disease detection`.
+- `<surface>` is one or more comma-separated surface tags: `service`, `web`, `mobile` (finer scopes like `service/adaptive` allowed). Multi-surface example: `feat(service,mobile): add order processing`.
 - **No issue ID in the commit line.** GitHub linking happens in the **PR body** via `Closes #<n>` — do not put `#123` in commits.
 - Every commit body ends with the AI tool's `Co-Authored-By:` trailer.
 
 ## PR format
 
-- **Title**: a Conventional Commit summary line (e.g. `feat(mobile,service): add inventory sync`).
+- **Title**: a Conventional Commit summary line (e.g. `feat(mobile,service): add order sync`).
 - **Body**: uses the repo's PR template; carries **`Closes #<story>`** plus a **`Closes #<task>`** for EVERY Task (all auto-close on merge into `{{INTEGRATION_BRANCH}}`), plus ONE **`Part of #<feature>`** link to the parent Feature (which stays open), and Surface checkboxes.
 - **Created via** `gh pr create --base {{INTEGRATION_BRANCH}} --head <user-branch>` (base is always the integration branch); reviewers set via `gh pr edit --add-reviewer` (or CODEOWNERS). The human performs the merge with the configured **PR Merge Method** (`merge` default / `squash` / `rebase`) — the method affects only `develop` history, not issue closing.
 - All content is **Markdown** — GitHub is Markdown-native; no HTML conversion.
